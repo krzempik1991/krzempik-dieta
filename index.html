@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2d6a4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="KrzempiK Dieta">
+<title>KrzempiK — Moja Dieta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2ed;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd6;
+  --text: #1a1714;
+  --text2: #6b6560;
+  --text3: #a09890;
+  --green: #2d6a4f;
+  --green-light: #e8f4ee;
+  --green-mid: #b7dfc8;
+  --amber: #92400e;
+  --amber-light: #fef3c7;
+  --rose: #9f1239;
+  --rose-light: #fce7f3;
+  --accent: #2d6a4f;
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 24px;
+  color: var(--green);
+  padding: 1rem 0;
+  white-space: nowrap;
+}
+.logo span { color: var(--text3); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 300; margin-left: 8px; }
+.nav { display: flex; gap: 0; flex: 1; }
+.nav-btn {
+  padding: 1.2rem 1.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  color: var(--text2);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active { color: var(--green); border-bottom-color: var(--green); }
+.header-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+.hstat { text-align: right; }
+.hstat-val { font-size: 18px; font-weight: 600; color: var(--green); }
+.hstat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* LAYOUT */
+.main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* SCALER BAR */
+.scaler-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 2rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.scaler-bar label { font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--text2); }
+.scaler-bar input[type=range] { flex: 1; min-width: 120px; max-width: 320px; cursor: pointer; }
+.scaler-val { font-size: 15px; font-weight: 600; color: var(--green); min-width: 70px; }
+.scaler-factor {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scaler-factor.over { background: #fef3c7; color: #92400e; }
+.scaler-reset {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.scaler-reset:hover { background: var(--surface2); }
+.scaler-info { font-size: 12px; color: var(--text3); white-space: nowrap; }
+@media (max-width: 600px) {
+  .scaler-bar { padding: 10px 1rem; gap: 10px; }
+  .scaler-bar input[type=range] { max-width: none; }
+  .scaler-info { display: none; }
+}
+
+/* SEARCH BAR */
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.search-bar input, .search-bar select {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-bar input { flex: 1; min-width: 200px; }
+.search-bar input:focus, .search-bar select:focus { border-color: var(--green); }
+.search-bar select { cursor: pointer; }
+
+/* MEAL GRID */
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+.meal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.meal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-color: var(--green-mid);
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.badge-s { background: var(--amber-light); color: var(--amber); }
+.badge-d { background: var(--green-light); color: var(--green); }
+.badge-k { background: var(--rose-light); color: var(--rose); }
+.meal-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  line-height: 1.3;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.macros {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.macro {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border-radius: 999px;
+  color: var(--text2);
+}
+.macro strong { color: var(--text); font-weight: 600; }
+
+/* MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,23,20,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  max-width: 620px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface2);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--border); }
+.modal h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  margin: 10px 0 1rem;
+  padding-right: 2rem;
+  line-height: 1.3;
+}
+.section-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+  margin: 1.25rem 0 0.5rem;
+}
+.ing-list { padding-left: 1.5rem; }
+.ing-list li {
+  font-size: 13.5px;
+  color: var(--text2);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+.steps-list { list-style: none; counter-reset: steps; }
+.steps-list li {
+  counter-increment: steps;
+  padding: 10px 0 10px 2.75rem;
+  position: relative;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.steps-list li:last-child { border-bottom: none; }
+.steps-list li::before {
+  content: counter(steps);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 24px;
+  height: 24px;
+  background: var(--green-light);
+  color: var(--green);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.add-row {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.add-row label { font-size: 13px; font-weight: 500; white-space: nowrap; }
+.add-row select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.btn {
+  padding: 9px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface2); }
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.btn-primary:hover { background: #235c42; border-color: #235c42; }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-danger { color: var(--rose); border-color: #fecdd3; }
+.btn-danger:hover { background: var(--rose-light); }
+
+/* PLANNER */
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.planner-header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+}
+.week-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.wstat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+.wstat-val { font-size: 22px; font-weight: 600; color: var(--green); }
+.wstat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.planner-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+.plan-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-height: 180px;
+}
+.plan-day-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.plan-slot {
+  min-height: 50px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  position: relative;
+  font-size: 10px;
+  transition: border-color 0.15s;
+}
+.plan-slot.empty {
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text3);
+  cursor: pointer;
+  line-height: 1.3;
+}
+.plan-slot.empty:hover { border-color: var(--green-mid); color: var(--green); background: var(--green-light); }
+.plan-slot.filled {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  cursor: default;
+}
+.slot-type { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); margin-bottom: 2px; }
+.slot-name { font-size: 10px; font-weight: 500; line-height: 1.3; color: var(--text); }
+.slot-kcal { font-size: 9px; color: var(--text3); margin-top: 2px; }
+.slot-rm {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fecdd3;
+  color: var(--rose);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.plan-slot.filled:hover .slot-rm { opacity: 1; }
+.day-total {
+  font-size: 10px;
+  text-align: center;
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.day-copy-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 5px 0;
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  color: var(--text3);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  text-align: center;
+  line-height: 1.4;
+}
+.day-copy-btn:hover { color: var(--green); border-color: var(--green-mid); background: var(--green-light); }
+
+/* SHOPPING */
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.shop-header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+}
+.shop-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.shop-cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+.shop-cat-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shop-cat-icon { font-size: 16px; }
+.shop-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.shop-item:last-child { border-bottom: none; }
+.shop-item input[type="checkbox"] { margin-top: 3px; cursor: pointer; accent-color: var(--green); width: 15px; height: 15px; flex-shrink: 0; }
+.shop-item span { line-height: 1.4; }
+.shop-item.done span { text-decoration: line-through; color: var(--text3); }
+.shop-amt { font-size: 11px; color: var(--text3); display: block; }
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text3);
+  font-size: 15px;
+}
+.empty-state .big { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text2); margin-bottom: 0.5rem; }
+
+/* MODAL SELECT */
+.meal-select-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin-top: 1rem;
+}
+.meal-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  gap: 12px;
+}
+.meal-option:hover { background: var(--green-light); border-color: var(--green-mid); }
+.meal-option .mname { font-size: 13.5px; font-weight: 500; line-height: 1.3; }
+.meal-option .mkcal { font-size: 12px; color: var(--text3); white-space: nowrap; }
+.search-mini {
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.search-mini:focus { border-color: var(--green); }
+
+/* RESPONSIVE — TABLET */
+@media (max-width: 900px) {
+  .planner-grid { grid-template-columns: repeat(4, 1fr); }
+  .week-stats { grid-template-columns: repeat(3, 1fr); }
+  .meal-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* RESPONSIVE — MOBILE */
+@media (max-width: 600px) {
+
+  /* ── HEADER ── */
+  .header {
+    padding: 0 1rem;
+    gap: 0;
+    justify-content: space-between;
+    height: 52px;
+    flex-wrap: nowrap;
+  }
+  .logo { font-size: 20px; padding: 0; flex-shrink: 0; }
+  .logo span { display: none; }
+  .header-stats { display: none; }
+
+  /* ── BOTTOM NAV ── */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: stretch;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 8px 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    border-bottom: none;
+    border-top: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.2;
+  }
+  .nav-btn.active { border-top-color: var(--green); color: var(--green); }
+  .nav-btn::before { font-size: 20px; line-height: 1; display: block; }
+  .nav-btn:nth-child(1)::before { content: "🍽"; }
+  .nav-btn:nth-child(2)::before { content: "📅"; }
+  .nav-btn:nth-child(3)::before { content: "🛒"; }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    padding: 1rem 0.875rem calc(74px + env(safe-area-inset-bottom, 0));
+    max-width: 100%;
+  }
+
+  /* ── PRZEPISY ── */
+  .search-bar { flex-direction: column; gap: 8px; }
+  .search-bar input,
+  .search-bar select { width: 100%; font-size: 16px; padding: 12px 14px; }
+  .meal-grid { grid-template-columns: 1fr; gap: 10px; }
+  .meal-card { padding: 1rem; }
+  .meal-name { font-size: 15px; }
+
+  /* ── PLANER ── */
+  .planner-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .planner-header h2 { font-size: 20px; }
+  .planner-header > div { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .planner-header > div .btn { width: 100%; text-align: center; }
+  .week-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .wstat { padding: 10px; }
+  .wstat-val { font-size: 18px; }
+  .wstat-lbl { font-size: 10px; }
+  .planner-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -0.875rem;
+    padding: 0 0.875rem 1rem;
+    scrollbar-width: none;
+  }
+  .planner-scroll-wrap::-webkit-scrollbar { display: none; }
+  .planner-grid {
+    grid-template-columns: repeat(7, 130px);
+    gap: 8px;
+    min-width: max-content;
+    width: max-content;
+  }
+  .plan-day { min-height: 150px; padding: 8px; }
+  .plan-day-lbl { font-size: 11px; margin-bottom: 6px; }
+  .plan-slot { min-height: 42px; font-size: 9px; }
+  .plan-slot.empty { font-size: 9px; }
+  .slot-name { font-size: 9px; }
+  .slot-kcal { font-size: 8px; }
+  .day-total { font-size: 9px; }
+  .day-copy-btn { font-size: 9px; padding: 4px 0; margin-top: 4px; }
+
+  /* ── LISTA ZAKUPÓW ── */
+  .shop-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .shop-header h2 { font-size: 20px; }
+  .shop-header > div {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .shop-header > div .btn { width: 100%; text-align: center; font-size: 12px; padding: 9px 8px; }
+  .shop-layout { grid-template-columns: 1fr; gap: 10px; }
+  .shop-cat-card { padding: 1rem; }
+  .shop-item { padding: 10px 0; font-size: 14px; }
+  .shop-item input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; }
+  .shop-amt { font-size: 12px; }
+
+  /* ── MODALS — slide up from bottom ── */
+  .modal-backdrop { padding: 0; align-items: flex-end; }
+  .modal {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 92vh;
+    width: 100%;
+    padding: 1.25rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0));
+  }
+  .modal h2 { font-size: 18px; padding-right: 2.5rem; }
+  .modal-close { top: 1rem; right: 1rem; }
+
+  /* ── ADD TO PLAN ROW ── */
+  .add-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .add-row label { font-size: 14px; font-weight: 500; }
+  .add-row select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    border-radius: var(--radius);
+  }
+  .add-row .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  /* ── MODAL WYBORU DANIA ── */
+  .meal-select-grid { max-height: 55vh; }
+  .meal-option { padding: 14px 12px; }
+  .meal-option .mname { font-size: 14px; }
+  .meal-option .mkcal { font-size: 12px; }
+  .search-mini { font-size: 16px; padding: 13px 14px; }
+
+  /* ── OGÓLNE PRZYCISKI ── */
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+
+  /* ── TOAST ── */
+  .toast {
+    bottom: calc(74px + env(safe-area-inset-bottom, 0) + 8px);
+    right: 1rem;
+    left: 1rem;
+    text-align: center;
+  }
+
+  /* ── MAKRO PILLS ── */
+  .macro { font-size: 11px; padding: 3px 8px; }
+
+  /* ── SKŁADNIKI I KROKI ── */
+  .ing-list li { font-size: 14px; }
+  .steps-list li { font-size: 14px; }
+  .section-lbl { font-size: 11px; }
+  .macros { gap: 5px; }
+}
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--green);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body, html { background: #fff !important; }
+  .header, .nav, .search-bar, .shop-header .btn,
+  .modal-backdrop, .toast { display: none !important; }
+  .main { padding: 0 !important; max-width: 100% !important; }
+  .section { display: none !important; }
+  #sec-shopping { display: block !important; }
+  .shop-header { margin-bottom: 1rem !important; }
+  .shop-header h2 { font-size: 20px !important; }
+  .shop-layout { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px !important; }
+  .shop-cat-card { break-inside: avoid; border: 1px solid #ccc !important; border-radius: 6px !important; padding: 10px !important; }
+  .shop-cat-title { font-size: 12px !important; font-weight: 700 !important; margin-bottom: 6px !important; padding-bottom: 4px !important; border-bottom: 1px solid #ddd !important; }
+  .shop-item { padding: 3px 0 !important; font-size: 12px !important; }
+  .shop-item input[type="checkbox"] { display: none !important; }
+  .shop-amt { display: inline !important; color: #888 !important; font-size: 10px !important; margin-left: 4px !important; }
+  .shop-item::before { content: "☐ "; font-size: 11px; }
+  .shop-item.done { text-decoration: none !important; color: #000 !important; }
+  .shop-item.done span { text-decoration: none !important; color: #000 !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">KrzempiK<span>Moja dieta</span></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('meals')">Przepisy</button>
+    <button class="nav-btn" onclick="switchTab('planner')">Planer tygodnia</button>
+    <button class="nav-btn" onclick="switchTab('shopping')">Lista zakupów</button>
+  </nav>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-val" id="hs-meals">0</div>
+      <div class="hstat-lbl">Posiłków w planie</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val" id="hs-kcal">0</div>
+      <div class="hstat-lbl">Kcal w tygodniu</div>
+    </div>
+  </div>
+</header>
+
+<!-- SCALER BAR -->
+<div class="scaler-bar" id="scaler-bar">
+  <label>Kaloryczność dzienna:</label>
+  <input type="range" id="sl-kcal" min="1500" max="4500" step="100" value="2300" oninput="onScalerChange()">
+  <span class="scaler-val" id="sl-val">2300 kcal</span>
+  <span class="scaler-factor" id="sl-factor">bazowo</span>
+  <button class="scaler-reset" onclick="resetScaler()">Reset</button>
+  <span class="scaler-info" id="sl-info">Baza: ~2300 kcal/dzień</span>
+</div>
+
+<main class="main">
+
+  <!-- PRZEPISY -->
+  <div class="section active" id="sec-meals">
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Szukaj dania..." oninput="renderMeals()">
+      <select id="filter-type" onchange="renderMeals()">
+        <option value="">Wszystkie posiłki</option>
+        <option value="śniadanie">Śniadanie (Posiłek 1)</option>
+        <option value="obiad">Obiad (Posiłek 2)</option>
+        <option value="kolacja">Kolacja (Posiłek 3)</option>
+      </select>
+    </div>
+    <div class="meal-grid" id="meal-grid"></div>
+  </div>
+
+  <!-- PLANER -->
+  <div class="section" id="sec-planner">
+    <div class="planner-header">
+      <h2>Planer tygodnia</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-danger" onclick="clearPlan()">Wyczyść planer</button>
+        <button class="btn btn-sm btn-primary" onclick="switchTab('shopping')">Lista zakupów →</button>
+      </div>
+    </div>
+    <div class="week-stats" id="week-stats"></div>
+    <div class="planner-scroll-wrap">
+      <div class="planner-grid" id="planner-grid"></div>
+    </div>
+  </div>
+
+  <!-- LISTA ZAKUPÓW -->
+  <div class="section" id="sec-shopping">
+    <div class="shop-header">
+      <h2>Lista zakupów</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="generateShopping()">Odśwież z planera</button>
+        <button class="btn btn-sm" onclick="clearChecked()">Odznacz wszystko</button>
+        <button class="btn btn-sm" onclick="printFull()">🖨 Drukuj widok</button>
+        <button class="btn btn-sm btn-primary" onclick="printSimple()">🖨 Prosta lista</button>
+      </div>
+    </div>
+    <div id="shopping-content"></div>
+  </div>
+
+</main>
+
+<!-- MODAL PRZEPIS -->
+<div class="modal-backdrop" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-inner"></div>
+</div>
+
+<!-- MODAL WYBÓR DANIA -->
+<div class="modal-backdrop" id="modal2" onclick="closeModal2(event)">
+  <div class="modal" id="modal2-inner"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MEALS = [
+{id:1,name:"Tradycyjna jajecznica z pieczywem",type:"śniadanie",kcal:709,b:31,t:34,w:77,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Olej rzepakowy – 1.5 łyżki (15 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Pomidor – 2 sztuki (320 g)","Chleb żytni razowy – 4 kromki (120 g)","Natka pietruszki posiekana – 2 łyżeczki (10 g)"],steps:["Na patelni rozgrzewamy olej.","Wbijamy jajka na patelnię. Doprawiamy solą i pieprzem. Mieszamy i smażymy do ścięcia.","Pomidora kroimy na kawałki.","Jajecznicę podajemy z pomidorem i pieczywem. Opcjonalnie posypujemy natką pietruszki."]},
+{id:2,name:"Pieczone nuggetsy z ziemniakami",type:"obiad",kcal:907,b:46,t:34,w:105,ingredients:["Mięso z piersi kurczaka – 175 g","Sos barbecue – 1 łyżeczka (10 g)","Papryka wędzona – 1 szczypta","Czosnek granulowany – 1 szczypta","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Płatki kukurydziane – 7.5 łyżki (30 g)","Sos barbecue do podania – 3 łyżeczki (30 g)","Miód – 2 łyżeczki (24 g)","Majonez wegański – 2 łyżki (50 g)","Ziemniaki – 200 g","Pomidorki koktajlowe – 10 sztuk (200 g)"],steps:["Ziemniaki kroimy na kawałki, pieczemy w 220°C przez 30-40 min.","Mięso kroimy w paski. Dodajemy sos barbecue i przyprawy, mieszamy.","Płatki kukurydziane rozgniatamy. Kawałki mięsa panierujemy.","Pieczemy w 220°C góra-dół przez 10 min i kolejne 10 min w 200°C.","Mieszamy sos barbecue z miodem. Podajemy ze słodkim sosem, majonezem, ziemniakami i pomidorkami."]},
+{id:3,name:"Tost z mozzarellą, szynką z indyka i suszonymi pomidorami",type:"kolacja",kcal:713,b:48,t:25,w:75,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Ser mozzarella kulka – 6 plastrów (90 g)","Pomidory suszone w oleju (odsączone) – 2 sztuki (40 g)","Szynka z indyka – 8 plastrów (120 g)","Tymianek suszony – 0.5 łyżeczki (1.5 g)"],steps:["Pomidory kroimy na mniejsze kawałki.","Na kromce chleba układamy ser, szynkę i pomidory.","Tosty podpiekamy na zimnej patelni pod przykryciem do czasu rozpuszczenia sera.","Posypujemy tymiankiem."]},
+{id:4,name:"Szakszuka z pieczarkami, papryką i serem feta",type:"śniadanie",kcal:707,b:41,t:33,w:68,ingredients:["Oliwa z oliwek – 1 łyżeczka (5 g)","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Papryka czerwona – 0.5 sztuki (85 g)","Pieczarki uprawne – 3 sztuki (60 g)","Pomidory z puszki – 0.5 opakowania (200 g)","Kumin – 1 łyżeczka (2 g)","Jajko kurze całe – 3 sztuki (168 g)","Ser typu Feta – 2 plastry (50 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Chleb żytni razowy – 3 kromki (90 g)"],steps:["Na oliwie podsmażamy pokrojone cebulę, czosnek, paprykę i pieczarki.","Dodajemy pomidory z puszki. Gotujemy aż sos zgęstnieje. Doprawiamy kuminem, solą i pieprzem.","Wbijamy jajka na gotujący się sos, dodajemy ser, przykrywamy i czekamy aż jajka się zetną.","Podajemy z pieczywem."]},
+{id:5,name:"Zupa kalafiorowa z mrożonki",type:"obiad",kcal:874,b:50,t:37,w:88,ingredients:["Zupa kalafiorowa mrożona – 0.5 opakowania (375 g)","Bulion warzywny – 2.5 szklanki (625 g)","Olej rzepakowy – 2.5 łyżki (25 g)","Mięso z piersi kurczaka – 125 g","Jogurt grecki – 2.5 łyżki (50 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Chleb żytni razowy – 4 kromki (120 g)"],steps:["W garnku zagotowujemy bulion, dodajemy mrożonkę. Gotujemy wg instrukcji.","Na patelni smażymy mięso pokrojone w kostkę.","W miseczce łączymy jogurt grecki i 2 chochle bulionu. Wlewamy do zupy.","Dodajemy mięso, doprawiamy. Jemy z chlebem razowym."]},
+{id:6,name:"Kanapki w greckim stylu",type:"kolacja",kcal:796,b:50,t:35,w:65,ingredients:["Bułka wysokobiałkowa – 2 sztuki (160 g)","Ser typu Feta – 5 plastrów (130 g)","Ogórek świeży – 0.5 sztuki (75 g)","Pomidorki koktajlowe – 2 sztuki (40 g)","Papryka czerwona – 0.5 sztuki (85 g)","Oregano suszone – 0.5 łyżeczki","Sos balsamiczny – 1.5 łyżeczki (15 g)"],steps:["Na bułce układamy ser typu feta (możemy delikatnie rozsmarować).","Warzywa kroimy, posypujemy oregano, polewamy sosem i jemy z kanapkami."]},
+{id:7,name:"Kanapka z jajkiem i szynką z kurczaka",type:"śniadanie",kcal:690,b:42,t:29,w:74,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Serek śmietankowy – 4 łyżeczki (40 g)","Szynka z kurczaka – 4 plastry (40 g)","Jajko kurze całe – 3 sztuki (168 g)","Pomidor – 1 sztuka (160 g)","Rzodkiewka – 4 sztuki (60 g)","Szczypiorek siekany – 3 łyżeczki (15 g)"],steps:["Jajko gotujemy 8 minut od momentu wrzenia.","Chleb smarujemy serkiem, układamy szynkę i obrane pokrojone jajko.","Układamy pomidora, rzodkiewkę. Posypujemy szczypiorkiem."]},
+{id:8,name:"Bowl BBQ z kurczakiem i batatem",type:"obiad",kcal:882,b:51,t:29,w:105,ingredients:["Batat – 300 g","Mięso z piersi kurczaka – 175 g","Fasola czerwona konserwowa – 120 g","Papryka czerwona – 0.5 sztuki (85 g)","Papryka wędzona – 1 łyżeczka","Czosnek – 1 ząbek","Oliwa z oliwek – 2.5 łyżki (25 g)","Sos barbecue – 5 łyżeczek (50 g)"],steps:["Mięso doprawiamy czosnkiem, solą, pieprzem i wędzoną papryką, marynujemy 30 min.","Batata kroimy w kostkę, pieczemy z mięsem w 200°C przez 25-30 min.","Paprykę kroimy, fasolę odsączamy. Kurczaka kroimy w paski.","W misce łączymy batata, kurczaka, paprykę i fasolę. Polewamy sosem barbecue."]},
+{id:9,name:"Klasyczne pancakes",type:"kolacja",kcal:705,b:40,t:25,w:90,ingredients:["Maślanka 1.5% – 0.5 szklanki (160 g)","Jajko kurze całe – 1 sztuka (56 g)","Mąka pszenna pełnoziarnista – 5.5 łyżki (80 g)","Olej rzepakowy – 3 łyżeczki (15 g)","Proszek do pieczenia – 0.5 łyżeczki","Erytrol – 3 łyżeczki (15 g)","Jogurt skyr – 1 opakowanie (150 g)","Borówki – 100 g"],steps:["Do miski wlewamy maślankę, dodajemy mąkę, proszek do pieczenia i erytrol.","Wbijamy jajko, miksujemy na gładką masę.","Na rozgrzanym oleju smażymy małe porcje ciasta do ścięcia, przewracamy.","Podajemy z jogurtem i owocami."]},
+{id:10,name:"Ryż z jogurtem skyr i owocami",type:"śniadanie",kcal:676,b:38,t:17,w:98,ingredients:["Ryż basmati – 70 g","Jogurt skyr – 1.5 opakowania (225 g)","Syrop klonowy – 2 łyżeczki (20 g)","Truskawki – 150 g","Mieszanka orzechów – 30 g"],steps:["Ryż zalewamy wodą 1:3, gotujemy na wolnym ogniu.","Ryż mieszamy z syropem klonowym i jogurtem skyr.","Na górę kładziemy owoce i orzechy."]},
+{id:11,name:"Pulpety drobiowe z suszonymi pomidorami",type:"obiad",kcal:912,b:57,t:30,w:108,ingredients:["Kasza jaglana – 100 g","Mięso mielone z kurczaka – 200 g","Pomidory suszone w oleju – 2 sztuki (40 g)","Płatki owsiane górskie – 1.5 łyżki (15 g)","Cebula – 0.5 sztuki","Czosnek – 1 ząbek","Oliwa z oliwek – 1 łyżeczka","Oregano suszone – 0.5 łyżeczki","Pomidory z puszki – 0.5 opakowania (200 g)","Rukola – 65 g"],steps:["Kaszę gotujemy wg instrukcji.","Cebulę i czosnek podsmażamy na oliwie. Studzimy.","Łączymy mięso z cebulą, płatkami, suszonymi pomidorami i oregano.","Formujemy kulki ok. 3 cm. Układamy w sosie pomidorowym.","Pieczemy 30 min w 180°C, ostatnie 10 min bez przykrycia. Podajemy z kaszą."]},
+{id:12,name:"Owsianka z bananem i borówkami",type:"kolacja",kcal:714,b:43,t:23,w:94,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Banan – 1 sztuka (120 g)","Borówki – 50 g","Płatki migdałów – 35 g","Jogurt skyr – 1.5 opakowania (225 g)"],steps:["Płatki zalewamy wrzątkiem, czekamy 3 minuty. Mieszamy z jogurtem.","Banana kroimy w plasterki, dodajemy borówki i płatki migdałów. Całość mieszamy."]},
+{id:13,name:"Owsianka a la Bounty",type:"śniadanie",kcal:706,b:45,t:28,w:76,ingredients:["Mleko 1.5% – 1 szklanka (250 g)","Jogurt skyr – 1.5 opakowania (225 g)","Płatki owsiane górskie – 6 łyżek (60 g)","Czekolada gorzka 70% – 10 g","Wiórki kokosowe – 4 łyżki (24 g)","Wanilia ekstrakt – 1 łyżeczka","Erytrol – 1.5 łyżeczki"],steps:["Blendujemy mleko, wiórki kokosowe i ekstrakt waniliowy. Podgrzewamy.","Dodajemy płatki i erytrol, gotujemy 4 minuty mieszając. Odstawiamy 2 min, dodajemy jogurt.","Podajemy z tartą gorzką czekoladą."]},
+{id:14,name:"Sałatka ziemniaczana z indykiem",type:"obiad",kcal:878,b:52,t:29,w:109,ingredients:["Ziemniaki – 6 sztuk (420 g)","Mięso z piersi indyka – 200 g","Marchew – 1 sztuka (80 g)","Jabłko – 1 sztuka (150 g)","Miks sałat – 100 g","Jogurt naturalny 2% – 3 łyżki (60 g)","Oliwa z oliwek – 2.5 łyżki (25 g)","Koper posiekany – 2 łyżeczki"],steps:["Ziemniaki gotujemy 15-20 min. Studzimy.","Mięso gotujemy 15-20 min. Studzimy, kroimy w kostkę.","Marchew gotujemy 5-7 min. Jabłko kroimy w kostkę.","W misce łączymy składniki. Sos z jogurtu, oliwy, koperku, soli i pieprzu."]},
+{id:15,name:"Kanapki z szynką parmeńską i mozzarellą",type:"kolacja",kcal:716,b:40,t:34,w:67,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Szynka parmeńska – 2 plastry (30 g)","Ser mozzarella kulka light – 1 opakowanie (120 g)","Pomidorki koktajlowe – 5 sztuk (100 g)","Masło extra – 4 łyżeczki (20 g)"],steps:["Na chlebie razowym rozsmarowujemy masło, układamy szynkę parmeńską i ser mozzarellę.","Jemy z warzywami."]},
+{id:16,name:"Wiosenny serek wiejski z warzywami",type:"śniadanie",kcal:702,b:47,t:24,w:82,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Ogórek świeży – 0.5 sztuki (75 g)","Papryka czerwona – 0.5 sztuki (85 g)","Rzodkiewka – 4 sztuki (60 g)","Szczypiorek siekany – 2 łyżeczki","Chleb żytni razowy – 4 kromki (120 g)","Masło extra – 2 łyżeczki (10 g)"],steps:["Serek przekładamy do miseczki. Dodajemy pokrojone warzywa i szczypiorek, mieszamy.","Podajemy z pieczywem posmarowanym masłem."]},
+{id:17,name:"Jajka na tortilli",type:"obiad",kcal:910,b:41,t:46,w:83,ingredients:["Pomidory z puszki – 0.5 opakowania (200 g)","Ogórek świeży – 1 sztuka (150 g)","Papryka czerwona – 1 sztuka (170 g)","Cebula – 0.5 sztuki","Jajko kurze całe – 4 sztuki (224 g)","Tortilla pełnoziarnista – 2 sztuki (120 g)","Olej rzepakowy – 1 łyżka","Kolendra świeża – 1 garść"],steps:["Paprykę i cebulę kroimy i podsmażamy 3 min. Dodajemy pomidory, dusimy 5 min.","Ogórka kroimy i dodajemy do sosu.","Na suchej patelni smażymy jajka sadzone.","Tortillę podgrzewamy, smarujemy sosem, przekładamy jajka. Posypujemy kolendrą."]},
+{id:18,name:"Omlet na słodko z bananem",type:"kolacja",kcal:690,b:32,t:32,w:75,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Mąka pszenna pełnoziarnista – 2 łyżki (30 g)","Wiórki kokosowe – 3 łyżki (18 g)","Kakao 16% – 1 łyżeczka","Truskawki – 150 g","Banan – 1 sztuka (120 g)","Jogurt naturalny 2% – 4 łyżki (80 g)"],steps:["Jajko, mąkę, kakao i wiórki łączymy. Smażymy 4 min, odwracamy na 1 min.","Przekładamy na talerz.","Owoce kroimy. Podajemy z jogurtem i owocami."]},
+{id:19,name:"Omlet z szynką parmeńską i pieczarkami",type:"śniadanie",kcal:689,b:45,t:26,w:75,ingredients:["Pieczarki uprawne – 4 sztuki (80 g)","Jarmuż – 30 g","Czosnek – 1 ząbek","Szynka parmeńska – 3 plastry (45 g)","Jajko kurze całe – 3 sztuki (168 g)","Pomidor – 1 sztuka (160 g)","Chleb żytni razowy – 4 kromki (120 g)"],steps:["Kroimy pieczarki i szynkę. Czosnek drobno siekamy.","Podsmażamy czosnek, jarmuż, pieczarki i szynkę ok. 4 min.","Jajka roztrzepujemy, dodajemy podsmażone składniki. Przelewamy na patelnię.","Smażymy ok. 5 min. Podajemy z pomidorem i pieczywem."]},
+{id:20,name:"Polędwica wieprzowa z warzywami w sosie sojowym",type:"obiad",kcal:893,b:51,t:32,w:97,ingredients:["Polędwica wieprzowa – 180 g","Ryż basmati – 100 g","Papryka czerwona – 1 sztuka (170 g)","Sos sojowy – 1.5 łyżki (15 g)","Oliwa z oliwek – 3 łyżeczki (15 g)","Szczypiorek – 2 łyżeczki","Cebula – 0.5 sztuki","Sezam nasiona – 3 łyżeczki (15 g)"],steps:["Gotujemy ryż wg instrukcji.","Polędwicę kroimy w plasterki, przyprawiamy.","Paprykę i cebulę podsmażamy 3 min, odkładamy.","Smażymy polędwicę na dużym ogniu ok. 3 min. Dodajemy warzywa i sos sojowy, smażymy 2 min.","Podajemy z ryżem, posypujemy sezamem."]},
+{id:21,name:"Kanapka z jajkiem",type:"kolacja",kcal:692,b:35,t:31,w:77,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Serek śmietankowy – 2 łyżki (50 g)","Jajko kurze całe – 3 sztuki (168 g)","Pomidor – 1 sztuka (160 g)","Rzodkiewka – 6 sztuk (90 g)","Rukola – 50 g","Szczypiorek siekany – 2 łyżeczki"],steps:["Jajko gotujemy 8 min od momentu wrzenia.","Chleb smarujemy serkiem śmietankowym.","Układamy rukolę, jajko, pomidora i rzodkiewkę. Posypujemy szczypiorkiem."]},
+{id:22,name:"Tortilla z kurczakiem, warzywami i serem feta",type:"śniadanie",kcal:670,b:48,t:27,w:58,ingredients:["Tortilla pełnoziarnista – 3 sztuki (180 g)","Mięso z piersi kurczaka – 250 g","Czosnek granulowany – 1 łyżeczka","Ogórek świeży – 1.5 sztuki","Pomidor – 1.5 sztuki","Rukola – 60 g","Ser typu Feta – 5 plastrów (125 g)","Olej rzepakowy – 2 łyżeczki","Jogurt naturalny – 5 łyżek","Koper posiekany – 1 łyżeczka","Sok z cytryny – 2 łyżki"],steps:["Sos jogurtowy: jogurt + czosnek + koper + sok z cytryny.","Mięso kroimy, przyprawiamy i smażymy.","Kroimy pomidora, ogórka i ser feta.","Na tortillę nakładamy sos, rukolę, warzywa, mięso i ser. Zwijamy."]},
+{id:23,name:"Kurczak Fajita",type:"obiad",kcal:926,b:53,t:35,w:98,ingredients:["Mięso z piersi kurczaka – 200 g","Olej rzepakowy – 6 łyżeczek (30 g)","Cebula czerwona – 0.5 sztuki","Papryka czerwona – 1 sztuka (170 g)","Limonka – 0.5 sztuki","Kolendra świeża – 1 garść","Kumin – 0.5 łyżeczki","Papryka słodka – 0.5 łyżeczki","Ryż basmati – 100 g"],steps:["Ryż gotujemy wg instrukcji.","Kurczaka kroimy, doprawiamy solą i pieprzem.","Paprykę kroimy w paski, cebulę w plasterki. Mieszamy z przyprawami i sokiem z limonki.","Smażymy mięso, odkładamy. Na tej samej patelni smażymy warzywa.","Łączymy kurczaka z warzywami. Posypujemy kolendrą. Podajemy z ryżem."]},
+{id:24,name:"Owsianka a la Snickers",type:"kolacja",kcal:701,b:44,t:25,w:84,ingredients:["Płatki owsiane górskie – 4 łyżki (40 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Czekolada gorzka 70% – 1 kostka (10 g)","Masło orzechowe – 2 łyżeczki (20 g)","Banan – 1 sztuka (120 g)","Mieszanka orzechów – 10 g","Jogurt skyr – 1.5 opakowania (225 g)"],steps:["Płatki i mleko podgrzewamy. Dodajemy czekoladę i masło orzechowe, mieszamy.","Dodajemy szczyptę soli. Przekładamy do miski.","Dodajemy banana, jogurt skyr i orzechy."]},
+{id:25,name:"Grahamka z kurczakiem i sałatą",type:"śniadanie",kcal:723,b:42,t:25,w:90,ingredients:["Mięso z piersi kurczaka – 125 g","Bułka grahamka – 2 sztuki (140 g)","Miks sałat – 40 g","Pomidor – 0.5 sztuki","Ogórek świeży – 1 sztuka (150 g)","Oliwa z oliwek – 2 łyżki (20 g)","Papryka słodka – 1 łyżeczka","Czosnek granulowany – 1 łyżeczka"],steps:["Kurczaka spłaszczamy, przyprawiamy i grillujemy 7-8 min.","Kroimy warzywa, grahamkę polewamy oliwą i podgrzewamy.","Grahamkę wykładamy warzywami i kurczakiem."]},
+{id:26,name:"Mięso w sosie pomidorowym",type:"obiad",kcal:900,b:47,t:44,w:72,ingredients:["Makaron pełnoziarnisty – 85 g","Mięso mielone wołowe – 175 g","Cebula – 0.5 sztuki","Czosnek – 1 ząbek","Passata pomidorowa – 1 szklanka (250 g)","Oliwa z oliwek – 1 łyżeczka","Bazylia suszona – 0.5 łyżeczki","Rozmaryn suszony – 0.5 łyżeczki"],steps:["Mięso smażymy kilka min, posypujemy przyprawami i oliwą.","Na tej samej patelni podsmażamy cebulę i czosnek. Zalewamy passatą, dodajemy do mięsa.","Dusimy 45 min na małym ogniu.","Gotujemy makaron i podajemy z sosem."]},
+{id:27,name:"Serek waniliowy z gorzką czekoladą i bananem",type:"kolacja",kcal:688,b:47,t:21,w:89,ingredients:["Jogurt skyr – 2 opakowania (300 g)","Wanilia ekstrakt – 1 szczypta","Czekolada gorzka 70% – 2 kostki (20 g)","Banan – 1 sztuka (120 g)","Płatki migdałów – 20 g","Wafle ryżowe – 4 sztuki (40 g)"],steps:["Jogurt skyr z ekstraktem waniliowym przekładamy do miski.","Dodajemy banana, gorzką czekoladę i płatki migdałów, mieszamy.","Podajemy z waflami ryżowymi."]},
+{id:28,name:"Owsianka z płatkami Nesquik",type:"śniadanie",kcal:693,b:42,t:15,w:101,ingredients:["Płatki owsiane górskie – 5 łyżek (50 g)","Czekolada gorzka 70% – 2 kostki (20 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Borówki – 100 g","Płatki Nesquik – 7 łyżek (35 g)","Jogurt skyr – 1.5 opakowania (225 g)"],steps:["Płatki owsiane i czekoladę wrzucamy do miski. Zalewamy gorącym mlekiem.","Mieszamy aż czekolada się rozpuści.","Dodajemy borówki, płatki nesquik i jogurt skyr."]},
+{id:29,name:"Kurczak po chińsku",type:"obiad",kcal:879,b:49,t:34,w:92,ingredients:["Ryż basmati – 90 g","Oliwa z oliwek – 6 łyżeczek (30 g)","Mięso z piersi kurczaka – 175 g","Warzywa chińskie mrożone – 3 porcje (300 g)","Sos sojowy – 2 łyżki (20 g)","Curry – 1 łyżeczka"],steps:["Ryż gotujemy wg instrukcji.","Kurczaka kroimy, dodajemy sos sojowy i curry.","Na oliwie smażymy kurczaka. Gdy się zezłoci, odkładamy.","Na tę samą patelnię wrzucamy warzywa i smażymy. Dodajemy kurczaka, podajemy z ryżem."]},
+{id:30,name:"Śniadaniowa tortilla z jajkiem",type:"kolacja",kcal:717,b:31,t:36,w:64,ingredients:["Jajko kurze całe – 2 sztuki (112 g)","Pomidor – 1 sztuka (160 g)","Tortilla pełnoziarnista – 2 sztuki (120 g)","Zioła prowansalskie – 0.5 łyżeczki","Ser typu Feta – 2 plastry (50 g)","Oliwa z oliwek – 1 łyżeczka"],steps:["Oliwę rozgrzewamy. Jajka rozbijamy, mieszamy z przyprawami.","Plastry pomidora układamy na patelni, zalewamy jajkami. Przykrywamy tortillą.","Smażymy do ścięcia. Odwracamy tortillę.","Posypujemy serem, składamy i zapiekamy chwilę."]},
+{id:31,name:"Pieczone syrniki z owocami",type:"śniadanie",kcal:722,b:64,t:28,w:68,ingredients:["Ser twarogowy półtłusty – 1 opakowanie (250 g)","Jajko kurze całe – 1 sztuka (56 g)","Ksylitol – 1.5 łyżki (25 g)","Mąka orkiszowa biała – 3.5 łyżki (35 g)","Maliny – 50 g","Masło orzechowe – 2 łyżeczki (20 g)"],steps:["Piekarnik rozgrzewamy do 180°C termoobieg.","Wszystkie składniki (oprócz owoców i masła orzechowego) mieszamy ręcznie.","Formujemy kulki, spłaszczamy na placuszki. Pieczemy 20-30 min w 180°C.","Smarujemy masłem orzechowym i dekorujemy owocami."]},
+{id:32,name:"Makaron z kurczakiem i mrożonką włoską",type:"obiad",kcal:903,b:54,t:32,w:90,ingredients:["Mięso z piersi kurczaka – 150 g","Oliwa z oliwek – 2.5 łyżki (25 g)","Mrożonka warzyw po włosku – 2.5 porcji (250 g)","Pomidory z puszki – 0.5 opakowania (200 g)","Makaron pełnoziarnisty – 110 g","Tymianek suszony – 0.5 łyżeczki"],steps:["Makaron gotujemy wg instrukcji.","Na oliwie smażymy kurczaka na złoty kolor, odkładamy.","Na patelnię wrzucamy mrożonkę włoską, podsmażamy do miękkości.","Dodajemy pomidory, przyprawy, gotujemy 5-10 min. Wrzucamy mięso. Podajemy z makaronem."]},
+{id:33,name:"Omlecik z tortillą",type:"kolacja",kcal:704,b:39,t:45,w:36,ingredients:["Tortilla pełnoziarnista – 1 sztuka (60 g)","Jajko kurze całe – 3 sztuki (168 g)","Pomidor – 1 sztuka (160 g)","Ser typu Feta – 3 plastry (75 g)","Oliwa z oliwek – 1 łyżka (10 g)"],steps:["Ser kroimy w kostkę, pomidora na kawałki.","Jajka rozbijamy, dodajemy ser.","Na oliwie smażymy masę jajeczną 1-2 min, przykrywamy tortillą.","Odwracamy, na połowie układamy pomidora, składamy na pół. Smażymy 30 sek z każdej strony."]},
+{id:34,name:"Kanapki z jajkiem na miękko",type:"śniadanie",kcal:686,b:36,t:36,w:60,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Chleb żytni razowy – 3 kromki (90 g)","Masło extra – 3 łyżeczki (15 g)","Pomidor – 1.5 sztuki (240 g)","Ogórek świeży – 0.5 sztuki (75 g)"],steps:["Zagotowujemy wodę, wkładamy jajka i gotujemy na miękko 5.5 minuty.","Warzywa kroimy wedle uznania.","Podajemy z pieczywem posmarowanym masłem i warzywami."]},
+{id:35,name:"Pizza na gotowym spodzie",type:"obiad",kcal:871,b:51,t:41,w:75,ingredients:["Placek pszenny Piadina – 1 sztuka (120 g)","Oliwa z oliwek – 1.5 łyżki (15 g)","Passata pomidorowa – 0.3 szklanki (80 g)","Oregano suszone – 1 łyżeczka","Ser mozzarella kulka light – 1 opakowanie (120 g)","Oliwki czarne – 10 sztuk (30 g)","Cebula czerwona – 0.5 sztuki","Szynka z indyka – 6 plastrów (90 g)","Pomidorki koktajlowe – 3 sztuki (60 g)"],steps:["Nagrzewamy piekarnik do 240°C góra-dół lub grill.","Placek smarujemy oliwą, passatą, posypujemy oregano.","Układamy mozzarellę, oliwki, cebulę, szynkę i pomidorki.","Pieczemy ok. 8 min na górnej grzałce lub grillu."]},
+{id:36,name:"Omlet z szynką z kurczaka i papryką",type:"kolacja",kcal:719,b:46,t:26,w:79,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Mleko 1.5% – 5 łyżek (75 g)","Mąka orkiszowa pełnoziarnista – 3 łyżki (30 g)","Papryka czerwona – 0.5 sztuki","Pomidorki koktajlowe – 5 sztuk (100 g)","Szynka z kurczaka – 5 plastrów (50 g)","Olej rzepakowy – 1 łyżeczka","Chleb żytni razowy – 3 kromki (90 g)"],steps:["Jajka, mąkę i mleko łączymy, doprawiamy.","Kroimy paprykę, pomidorki i szynkę.","Na patelni podsmażamy warzywa i szynkę 2 min, wlewamy jajka, przykrywamy. Smażymy do ścięcia.","Posypujemy szczypiorkiem. Podajemy z pieczywem."]},
+{id:37,name:"Tosty francuskie z serem gouda",type:"śniadanie",kcal:679,b:43,t:28,w:70,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Jajko kurze całe – 1 sztuka (56 g)","Mleko 1.5% – 4 łyżki (60 g)","Bazylia suszona – 0.5 łyżeczki","Ser gouda – 4 plastry (60 g)","Szynka z kurczaka – 4 plastry (40 g)","Ogórek świeży – 1 sztuka (150 g)","Oliwa z oliwek – 1 łyżeczka"],steps:["Kromki przekrajamy na pół po przekątnej (trójkąty).","Na trójkąt układamy ser gouda i szynkę, przykrywamy drugim trójkątem.","Rozkłócamy jajko z mlekiem, solą i bazylią. Obtaczamy tosty.","Smażymy na oliwie do zarumienienia. Podajemy z warzywami."]},
+{id:38,name:"Pinsa z bakłażanem i burratą",type:"obiad",kcal:909,b:42,t:28,w:119,ingredients:["Pinsa – 1 sztuka (230 g)","Passata pomidorowa – 0.4 szklanki (100 g)","Bazylia suszona – 0.5 łyżeczki","Bakłażan – 0.5 sztuki (100 g)","Szynka parmeńska – 4 plastry (60 g)","Burrata – 6 plastrów (60 g)"],steps:["Piekarnik nagrzewamy do 250°C góra-dół.","Bakłażana kroimy na cienkie plasterki.","Pinsę smarujemy passatą, posypujemy przyprawami, układamy bakłażana.","Zapiekamy 5 min. Układamy szynkę i burratę. Zapiekamy kolejną minutę."]},
+{id:39,name:"Serek wiejski z owocami i syropem klonowym",type:"kolacja",kcal:705,b:44,t:24,w:83,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Banan – 1 sztuka (120 g)","Pomarańcza – 1 sztuka (240 g)","Syrop klonowy – 2 łyżeczki (20 g)","Migdały – 20 g"],steps:["Owoce obieramy i kroimy na kawałki, migdały siekamy.","Owoce i orzechy nakładamy na serek, polewamy syropem klonowym."]},
+{id:40,name:"Słodki omlet z musem owocowym",type:"śniadanie",kcal:696,b:43,t:28,w:75,ingredients:["Jajko kurze całe – 2 sztuki (112 g)","Mąka pszenna typ 500 – 5 łyżek (60 g)","Mleko 1.5% – 6 łyżek (90 g)","Olej rzepakowy – 3 łyżeczki (15 g)","Jogurt skyr – 1 opakowanie (150 g)","Maliny – 150 g","Erytrol – 2 łyżeczki"],steps:["Maliny z erytrolem podgrzewamy do rozpadnięcia. Przecieramy przez sitko.","Miksujemy jajka, mąkę i mleko.","Smażymy omlet pod przykryciem. Gdy masa się zetnie, odwracamy.","Na omlet nakładamy skyr, składamy na pół. Polewamy sosem malinowym."]},
+{id:41,name:"Smażony ryż z brokułem i kurczakiem",type:"obiad",kcal:889,b:44,t:36,w:96,ingredients:["Ryż basmati – 100 g","Imbir – 1 plaster (5 g)","Czosnek – 1 ząbek","Oliwa z oliwek – 3 łyżki (30 g)","Mięso z piersi kurczaka – 150 g","Brokuł – 100 g","Marchew – 1 sztuka (80 g)","Sos sojowy – 1 łyżka","Sezam nasiona – 1 łyżeczka"],steps:["Ryż gotujemy i odcedzamy.","Kurczaka kroimy w cienkie paski.","Na oliwie smażymy kurczaka, imbir i czosnek. Dodajemy brokuł i marchew.","Dodajemy ryż, sos sojowy i sezam. Mieszamy."]},
+{id:42,name:"Kanapki z twarożkiem",type:"kolacja",kcal:705,b:41,t:26,w:83,ingredients:["Ser twarogowy półtłusty – 5 plastrów (150 g)","Jogurt naturalny 2% – 4 łyżki (80 g)","Rzodkiewka – 3 sztuki (45 g)","Szczypiorek siekany – 4 łyżeczki","Papryka czerwona – 0.5 sztuki","Chleb żytni razowy – 4 kromki (120 g)","Czosnek – 1 ząbek","Oliwa z oliwek – 1.5 łyżki (15 g)"],steps:["Ser rozmiatamy widelcem, dodajemy jogurt, czosnek, sól i pieprz. Mieszamy.","Warzywa myjemy i kroimy.","Chleb skrapiamy oliwą. Nakładamy twarożek, rzodkiewkę, paprykę i szczypiorek."]},
+{id:43,name:"Tortilla na słodko z masłem orzechowym",type:"śniadanie",kcal:700,b:47,t:30,w:68,ingredients:["Tortilla pełnoziarnista – 1 sztuka (60 g)","Masło orzechowe – 3 łyżeczki (30 g)","Jabłko – 1 sztuka (150 g)","Masło extra – 2 łyżeczki (10 g)","Przyprawa do pierników – 1 szczypta","Cynamon – 1 szczypta","Jogurt skyr – 2 opakowania (300 g)"],steps:["Tortillę smarujemy masłem orzechowym.","Układamy cienkie plasterki jabłka. Posypujemy przyprawą do piernika i cynamonem.","Składamy na pół, podsmażamy na maśle. Kroimy na trójkąty.","Zjadamy ze skyrem."]},
+{id:44,name:"Sałatka a la Cezar",type:"obiad",kcal:900,b:54,t:35,w:95,ingredients:["Mięso z piersi kurczaka – 150 g","Papryka wędzona – 0.5 łyżeczki","Czosnek granulowany – 1 łyżeczka","Oliwa z oliwek – 2.5 łyżki (25 g)","Batat – 1.5 sztuki (300 g)","Miks sałat – 50 g","Pomidorki koktajlowe – 15 sztuk (300 g)","Ogórek – 1 sztuka (160 g)","Parmezan starty – 1 łyżka (10 g)","Jogurt naturalny 2% – 7.5 łyżki (150 g)","Sok z cytryny – 3 łyżki"],steps:["Mięso przyprawiamy i marynujemy 15 min. Batata kroimy, pieczemy 25 min w 200°C.","Smażymy mięso 4 min z każdej strony.","Jogurt mieszamy z parmezanem, sokiem z cytryny, solą i pieprzem.","Łączymy sałatę i warzywa z 2/3 sosu. Układamy mięso i bataty, polewamy resztą sosu."]},
+{id:45,name:"Jogurt z daktylami i owocami",type:"kolacja",kcal:695,b:46,t:21,w:90,ingredients:["Jogurt skyr – 2 opakowania (300 g)","Banan – 1 sztuka (120 g)","Daktyle suszone – 30 g","Miód – 1.5 łyżeczki (18 g)","Cynamon – 1 łyżeczka","Migdały – 40 g"],steps:["Owoce kroimy na kawałki.","W misce łączymy jogurt, kawałki owoców i owoce suszone.","Polewamy miodem i posypujemy posiekanymi orzechami i cynamonem."]},
+{id:46,name:"Tortilla z szynką, serem i warzywami",type:"śniadanie",kcal:726,b:42,t:26,w:80,ingredients:["Tortilla pszenna – 2 sztuki (120 g)","Szynka z kurczaka – 6 plastrów (60 g)","Ser gouda – 4 plastry (60 g)","Papryka czerwona – 0.5 sztuki","Oliwki zielone – 7 sztuk (20 g)","Pomidorki koktajlowe – 4 sztuki (80 g)","Ketchup – 1 łyżka (20 g)"],steps:["W tortilli robimy 1 nacięcie od środka do końca (promień okręgu).","Na ćwiartki nakładamy szynkę, paprykę i ser.","Składamy w trójkąt.","Jemy na zimno lub podgrzane z pomidorkami, oliwkami i ketchupem."]},
+{id:47,name:"Gulasz drobiowy z ogórkiem kiszonym",type:"obiad",kcal:895,b:55,t:41,w:82,ingredients:["Ziemniaki – 4 sztuki (280 g)","Mięso z piersi kurczaka – 175 g","Papryka czerwona – 1 sztuka","Cebula – 0.5 sztuki","Czosnek – 1 ząbek","Ogórek kiszony – 2 sztuki (100 g)","Pieczarki uprawne – 5 sztuk (100 g)","Jogurt naturalny 2% – 5 łyżek (100 g)","Oliwa z oliwek – 3.5 łyżki (35 g)"],steps:["Ziemniaki obieramy, gotujemy 15 min.","Kurczaka kroimy i przyprawiamy. Cebulę, czosnek, paprykę i pieczarki kroimy.","Smażymy kurczaka, dodajemy warzywa i ziemniaki. Dodajemy krojone ogórki.","Jogurt rozrabiamy z gulaszem, dodajemy do całości. Podgrzewamy 2 min (nie gotujemy)."]},
+{id:48,name:"Jogurt z nasionami chia i owocami",type:"kolacja",kcal:710,b:45,t:25,w:88,ingredients:["Nasiona chia – 3 łyżeczki (15 g)","Płatki owsiane górskie – 3.5 łyżki (35 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Masło orzechowe – 3 łyżeczki (30 g)","Jogurt skyr – 1.5 opakowania (225 g)","Miód – 2 łyżeczki (24 g)","Borówki – 100 g"],steps:["Łączymy chia, płatki, masło orzechowe, jogurt, miód i mleko. Dobrze mieszamy.","Odstawiamy na noc aż chia napęcznieje.","Dekorujemy borówkami."]},
+{id:49,name:"Tost z mozzarellą i szynką z kurczaka",type:"śniadanie",kcal:695,b:45,t:24,w:70,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Ser mozzarella kulka – 1 sztuka (120 g)","Szynka z kurczaka – 6 plastrów (60 g)","Pomidorki koktajlowe – 8 sztuk (160 g)"],steps:["Na chleb układamy mozzarellę i szynkę, przykrywamy drugą kromką.","Tosty podpiekamy na patelni 3 min pod przykryciem, obracamy na kolejne 3 min.","Podajemy z pomidorkami."]},
+{id:50,name:"Meksykańskie tacos z kurczakiem i salsą",type:"obiad",kcal:919,b:48,t:32,w:113,ingredients:["Tortilla pełnoziarnista – 2 sztuki (120 g)","Mięso z piersi kurczaka – 150 g","Kukurydza konserwowa – 6 łyżek (120 g)","Papryka czerwona – 1 sztuka","Pomidor – 1 sztuka","Czosnek granulowany – 0.5 łyżeczki","Limonka – 1 sztuka","Cebula – 0.5 sztuki","Kolendra świeża – 1 garść","Oliwa z oliwek – 1.5 łyżki (15 g)"],steps:["Mięso kroimy w paski, przyprawiamy i smażymy 6-8 min.","Paprykę i cebulę smażymy po kurczaku. Dodajemy kukurydzę.","Warzywa mieszamy z kurczakiem, dodajemy kumin i sok z limonki.","Salsę: drobno krojimy pomidora, doprawiamy kolendrą i sokiem z limonki.","Na tortillę nakładamy farsz i zawijamy. Podajemy z salsą."]},
+{id:51,name:"Kanapki z szynką, jajkiem i ogórkiem kiszonym",type:"kolacja",kcal:710,b:41,t:31,w:71,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Majonez wegański – 2 łyżki (20 g)","Szynka z kurczaka – 5 plastrów (50 g)","Jajko kurze całe – 3 sztuki (168 g)","Ogórek kiszony – 2 sztuki (100 g)","Pomidor – 1 sztuka (160 g)"],steps:["Jajka gotujemy 8 min na twardo.","Pieczywo smarujemy majonezem, nakładamy wędlinę, pokrojone jajko i ogórka.","Podajemy z kawałkami pomidora."]},
+{id:52,name:"Jajecznica z chlebem razowym",type:"śniadanie",kcal:714,b:38,t:34,w:71,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Oliwa z oliwek – 1 łyżeczka","Chleb żytni razowy – 4 kromki (120 g)","Szczypiorek siekany – 2 łyżeczki","Pomidor – 1 sztuka (160 g)","Serek śmietankowy – 1 łyżka (20 g)"],steps:["Jajecznicę smażymy na oliwie. Doprawiamy, posypujemy szczypiorkiem.","Podajemy z chlebem posmarowanym serkiem i warzywami."]},
+{id:53,name:"Tortilla z kurczakiem (gyros)",type:"obiad",kcal:863,b:52,t:37,w:79,ingredients:["Mięso z piersi kurczaka – 175 g","Przyprawa gyros – 0.5 łyżeczki","Tortilla pełnoziarnista – 2 sztuki (120 g)","Papryka czerwona – 0.5 sztuki","Pomidor – 1 sztuka","Ogórek – 0.5 sztuki","Jogurt naturalny 2% – 3 łyżki (60 g)","Majonez – 2 łyżeczki","Czosnek – 1 ząbek","Miks sałat – 40 g"],steps:["Kurczaka kroimy, przyprawiamy gyrosem i smażymy 6-8 min.","Kroimy warzywa. Jogurt mieszamy z majonezem, czosnkiem i sokiem z cytryny.","Na każdej tortilli układamy sałatę, kurczaka, warzywa i sos. Zwijamy."]},
+{id:54,name:"Placuszki owsiane z czekoladą i borówkami",type:"kolacja",kcal:710,b:28,t:31,w:87,ingredients:["Banan – 1 sztuka (120 g)","Jajko kurze całe – 2 sztuki (112 g)","Mąka owsiana pełnoziarnista – 5.5 łyżki (66 g)","Erytrol – 2 łyżeczki","Borówki – 50 g","Czekolada gorzka 70% – 1 kostka (10 g)","Olej rzepakowy – 1 łyżeczka","Masło orzechowe – 1 łyżeczka"],steps:["Banana, jajko, mąkę i erytrol blendujemy. Dodajemy borówki i czekoladę.","Smażymy małe placuszki na oleju, odwracamy gdy spód się zetnie.","Podajemy z masłem orzechowym."]},
+{id:55,name:"Kanapka z jajkiem sadzonym",type:"śniadanie",kcal:670,b:38,t:29,w:70,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Chleb żytni razowy – 4 kromki (120 g)","Rukola – 50 g","Pomidorki koktajlowe – 5 sztuk (100 g)","Oliwa z oliwek – 1 łyżeczka","Oregano suszone – 1 łyżeczka"],steps:["Chleb wkładamy do tostera.","Na oliwie smażymy jajka sadzone. Posypujemy solą, pieprzem i oregano.","Na talerzu układamy jajko, rukolę i pomidorki. Podajemy z chlebem."]},
+{id:56,name:"Kurczak słodko kwaśny",type:"obiad",kcal:913,b:49,t:33,w:111,ingredients:["Mięso z piersi kurczaka – 150 g","Ryż basmati – 70 g","Papryka czerwona – 1 sztuka","Brokuł – 200 g","Marchew – 1 sztuka","Czosnek – 1 ząbek","Imbir – 1 plaster","Ananas – 150 g","Sos sojowy – 1 łyżka","Oliwa z oliwek – 2.5 łyżki"],steps:["Kurczaka kroimy w paski, marynujemy z czosnkiem, imbirem i oliwą.","Ryż gotujemy.","Smażymy kurczaka mocno 4-5 min, odkładamy.","Na tej samej patelni smażymy warzywa i ananasa 5 min.","Łączymy z kurczakiem, dodajemy sos sojowy i sok z cytryny. Posypujemy sezamem."]},
+{id:57,name:"Orzechowa owsianka z bananem i dżemem",type:"kolacja",kcal:712,b:43,t:29,w:79,ingredients:["Płatki owsiane górskie – 4 łyżki (40 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Orzechy włoskie – 40 g","Banan – 0.5 sztuki (60 g)","Dżem z czarnych porzeczek – 1 łyżeczka (15 g)","Ksylitol – 0.5 łyżki","Jogurt skyr – 225 g"],steps:["Płatki i mleko gotujemy na wolnym ogniu aż zgęstnieją.","Dodajemy ksylitol i jogurt skyr.","Banana kroimy.","Przekładamy do miski, układamy banana, dżem i orzechy."]},
+{id:58,name:"Czekoladowa owsianka",type:"śniadanie",kcal:716,b:41,t:26,w:86,ingredients:["Płatki owsiane górskie – 5 łyżek (50 g)","Jogurt skyr – 1.5 opakowania (225 g)","Banan – 1 sztuka (120 g)","Masło orzechowe – 1 łyżeczka (10 g)","Czekolada gorzka 70% – 1 kostka (10 g)","Orzechy włoskie – 20 g","Kakao – 0.5 łyżki (5 g)"],steps:["Banana kroimy na spód miseczki.","Płatki mieszamy z jogurtem skyr i kakao. Jeśli za gęste, dodajemy wodę.","Czekoladę rozpuszczamy i polewamy owsiankę.","Dodajemy masło orzechowe i orzechy."]},
+{id:59,name:"Zupa krem z pomidorów z pestkami dyni",type:"obiad",kcal:878,b:26,t:46,w:99,ingredients:["Oliwa z oliwek – 2 łyżki (20 g)","Cebula – 1 sztuka (80 g)","Czosnek – 1 ząbek","Pomidory z puszki – 1.5 opakowania (600 g)","Bazylia świeża – 1 garść","Erytrol – 3 łyżeczki","Pestki dyni – 45 g","Chleb żytni razowy – 4 kromki (120 g)"],steps:["Do garnka dodajemy oliwę, cebulę i czosnek.","Dodajemy pomidory i bazylię, gotujemy 10 min.","Miksujemy na gładką zupę. Doprawiamy.","Prażymy pestki dyni na suchej patelni.","Podajemy z pestkami dyni i chlebem."]},
+{id:60,name:"Pasta jajeczna ze szczypiorkiem i rukolą",type:"kolacja",kcal:694,b:39,t:33,w:64,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Jogurt naturalny 2% – 1 łyżka (20 g)","Majonez – 1 łyżeczka (10 g)","Pomidor suszony (bez oleju) – 1 sztuka (20 g)","Chleb żytni razowy – 3 kromki (90 g)","Rukola – 20 g","Pomidorki koktajlowe – 5 sztuk (100 g)","Szczypiorek siekany – 1 łyżeczka"],steps:["Jajka gotujemy 9 min, studzimy i obieramy.","Ścieramy jajka na tarce. Dodajemy szczypiorek, suszonego pomidora, jogurt, majonez, sól i pieprz.","Pastę podajemy z pomidorkami, rukolą i chlebem."]},
+{id:61,name:"Omlet pizza",type:"śniadanie",kcal:891,b:63,t:30,w:95,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Mąka pszenna typ 500 – 4 łyżki (48 g)","Olej rzepakowy – 1 łyżeczka (5 g)","Oregano suszone – 0.5 łyżeczki (1.5 g)","Ketchup – 1.5 łyżki (30 g)","Szynka z kurczaka – 4 plastry (40 g)","Ser żółty active protein plus Ryki – 4 plastry (75 g)","Pieczarki uprawne – 2 sztuki (40 g)","Cebula czerwona – 0.25 sztuki (25 g)","Papryka czerwona – 0.5 sztuki (85 g)","Rukola – 20 g","Sól – 1 szczypta (0.25 g)","Banan – 1.5 sztuki (180 g)"],steps:["Pieczarki kroimy na cienkie plastry, przesmażamy na rozgrzanej patelni bez tłuszczu. Czekamy, aż woda odparuje, zdejmujemy z patelni.","Jajka rozbijamy do miski, mieszamy z mąką pszenną, oregano oraz solą.","Na patelni rozgrzewamy olej, wylewamy masę. Smażymy na małym ogniu pod przykrywką. Gdy wierzch będzie ścięty, przewracamy na drugą stronę.","Ciepłą stronę omletu smarujemy ketchupem, nakładamy pieczarki, cebulę czerwoną, szynkę z kurczaka, ser oraz paprykę czerwoną.","Przykrywamy pokrywką i smażymy, aż ser się rozpuści.","Gotowy omlet posypujemy rukolą. Na deser jemy banana."]},
+{id:62,name:"Spaghetti z kurczakiem oraz pomidorkami koktajlowymi",type:"obiad",kcal:885,b:53,t:38,w:73,ingredients:["Makaron spaghetti pełnoziarnisty – 100 g","Oliwa z oliwek – 6 łyżeczek (30 g)","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Mięso z piersi kurczaka – 150 g","Pomidorki koktajlowe – 10 sztuk (200 g)","Sól – 1 szczypta (0.25 g)","Pieprz czarny – 1 szczypta (0.25 g)","Natka pietruszki posiekana – 1 łyżeczka (5 g)","Parmezan starty – 1 łyżka (10 g)"],steps:["Makaron gotujemy według przepisu na opakowaniu.","Cebulę, czosnek oraz natkę pietruszki drobno siekamy. Mięso oraz pomidorki koktajlowe kroimy w kostkę.","Na oliwie podsmażamy cebulę oraz czosnek.","Dodajemy i podsmażamy kurczaka. Posypujemy solą oraz pieprzem.","Gdy mięso jest gotowe, dodajemy pomidorki koktajlowe oraz makaron.","Gotowe danie posypujemy natką pietruszki oraz startym parmezanem."]},
+{id:63,name:"Skyrowe omleciki z miodem oraz borówkami",type:"kolacja",kcal:895,b:62,t:24,w:128,ingredients:["Jogurt skyr – 1.5 opakowania (225 g)","Jajko kurze całe – 3 sztuki (168 g)","Mąka orkiszowa biała – 9 łyżek (90 g)","Ksylitol – 2 łyżki (30 g)","Proszek do pieczenia – 1 łyżeczka (4 g)","Olej rzepakowy – 0.5 łyżki (5 g)","Miód – 1 łyżeczka (12 g)","Borówki amerykańskie, świeże lub mrożone – 125 g"],steps:["Białka oddzielamy od żółtek i ubijamy na sztywną pianę.","W osobnej misce mieszamy żółtka z pozostałymi składnikami (skyr, mąka, ksylitol, proszek do pieczenia).","Delikatnie łączymy masę żółtkową z ubitą pianą z białek.","Na patelni rozgrzewamy olej. Nakładamy małe porcje ciasta, smażymy do ścięcia, przewracamy i smażymy do zrumienienia.","Gotowe omleciki polewamy miodem i posypujemy owocami."]},
+{id:64,name:"Kanapki na słodko z masłem orzechowym, serem twarogowym i jabłkiem",type:"śniadanie",kcal:891,b:61,t:36,w:78,ingredients:["Bułka wysokobiałkowa – 2 sztuki (160 g)","Masło orzechowe – 3 łyżeczki (30 g)","Ser twarogowy półtłusty – 5 plastrów (150 g)","Jabłko – 1 sztuka (150 g)"],steps:["Chleb smarujemy masłem orzechowym.","Nakładamy plasterki twarogu i jabłko."]},
+{id:65,name:"Tortilla z jajkiem, szynką i serem",type:"obiad",kcal:882,b:58,t:39,w:74,ingredients:["Tortilla pszenna – 2 sztuki (120 g)","Jajko kurze całe – 3 sztuki (168 g)","Szynka z kurczaka – 4 plastry (40 g)","Papryka czerwona – 0.5 sztuki (85 g)","Ser gouda – 4 plastry (60 g)","Pieprz czarny – 1 szczypta (0.25 g)"],steps:["Paprykę kroimy w kostkę. Szynkę i ser w drobne paseczki.","Na zimną patelnię kładziemy tortillę, zaczynamy podgrzewać.","Jajka wybijamy do miseczki, mieszamy. Wylewamy na ciepłą tortillę.","Jajka posypujemy papryką, pieprzem, szynką i serem. Przykrywamy 2 plackiem i podgrzewamy. Odwracamy na drugą stronę.","Sprawdzamy, czy jajka się ścięły. Ściągamy z patelni, kroimy na trójkąty."]},
+{id:66,name:"Placki bananowe",type:"kolacja",kcal:869,b:57,t:28,w:108,ingredients:["Banan – 1 sztuka (120 g)","Mąka jaglana – 5 łyżek (50 g)","Jajko kurze całe – 1 sztuka (56 g)","Olej rzepakowy – 4 łyżeczki (20 g)","Cynamon – 0.5 łyżeczki (2 g)","Jogurt skyr – 17.5 łyżki (350 g)","Borówki amerykańskie – 150 g"],steps:["Banana rozgniatamy widelcem.","W misce mieszamy: banana, jajko, mąkę i cynamon.","Na patelni rozgrzewamy olej. Nakładamy niewielkie porcje ciasta, smażymy do ścięcia, odwracamy i smażymy do zezłocenia.","Podajemy z jogurtem i owocami."]},
+{id:67,name:"Kanapki z hummusem, wędliną i warzywami",type:"śniadanie",kcal:895,b:62,t:38,w:75,ingredients:["Bułka wysokobiałkowa – 2 sztuki (160 g)","Szynka z kurczaka – 12 plastrów (120 g)","Pomidor – 0.5 sztuki (80 g)","Papryka czerwona – 0.5 sztuki (85 g)","Ogórek świeży – 0.5 sztuki (75 g)","Szczypiorek siekany – 2 łyżeczki (10 g)","Hummus – 10 łyżeczek (100 g)","Oliwa z oliwek – 1 łyżeczka (5 g)"],steps:["Pieczywo smarujemy hummusem.","Układamy szynkę z kurczaka.","Posypujemy szczypiorkiem.","Jemy z warzywami polanymi oliwą."]},
+{id:68,name:"Sałatka z ryżem i kurczakiem",type:"obiad",kcal:902,b:51,t:34,w:100,ingredients:["Ryż basmati – 60 g","Mięso z piersi kurczaka – 175 g","Papryka słodka – 0.5 łyżeczki (1.5 g)","Oliwa z oliwek – 2 łyżki (20 g)","Ananas – 100 g","Papryka czerwona – 0.5 sztuki (85 g)","Kukurydza konserwowa – 0.5 opakowania (120 g)","Pestki dyni – 20 g","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ryż gotujemy według instrukcji na opakowaniu.","Mięso kroimy w kostkę, przyprawiamy solą, pieprzem i słodką papryką.","Na oliwie smażymy mięso do zarumienienia.","Ananasa oraz paprykę czerwoną kroimy w kostkę.","Do miski przekładamy ostudzony ryż i mięso. Dodajemy pozostałe składniki. Doprawiamy do smaku."]},
+{id:69,name:"Jogurt z płatkami kukurydzianymi i owocami",type:"kolacja",kcal:903,b:58,t:36,w:99,ingredients:["Jogurt skyr – 2.5 opakowania (375 g)","Płatki kukurydziane – 10 łyżek (40 g)","Maliny – 100 g","Banan – 1 sztuka (120 g)","Orzechy laskowe – 55 g"],steps:["Jogurt przekładamy do miseczki, nakładamy płatki, orzechy laskowe i umyte owoce."]},
+{id:70,name:"Jajecznica z pieczarkami, cebulą oraz bułką",type:"śniadanie",kcal:912,b:63,t:46,w:56,ingredients:["Jajko kurze całe – 5 sztuk (280 g)","Pieczarki uprawne – 2 sztuki (40 g)","Cebula – 0.5 sztuki (40 g)","Jarmuż – 15 g","Rzodkiewka – 2 sztuki (30 g)","Bułka wysokobiałkowa – 2 sztuki (160 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Olej rzepakowy – 1 łyżeczka (5 g)"],steps:["Cebulę oraz pieczarki kroimy. Podsmażamy na rozgrzanym oleju.","Na tę samą patelnię wbijamy jajka. Smażymy na małym ogniu mieszając, aż jajka się zetną.","Doprawiamy solą oraz pieprzem.","Podajemy z bułką, jarmużem oraz rzodkiewką."]},
+{id:71,name:"Makaron azjatycki z jajkiem",type:"obiad",kcal:907,b:40,t:39,w:98,ingredients:["Warzywa chińskie mrożone – 4 porcje (400 g)","Olej rzepakowy – 2 łyżki (20 g)","Sos sojowy – 2 łyżki (20 g)","Czosnek granulowany – 0.5 łyżeczki (1.5 g)","Imbir mielony – 1 szczypta","Jajko kurze całe – 3 sztuki (168 g)","Szczypiorek siekany – 4 łyżeczki (20 g)","Makaron Chow Mein – 100 g"],steps:["Makaron gotujemy wg instrukcji.","Na patelni rozgrzewamy olej, dodajemy mrożone warzywa. Smażymy ok. 10 min.","Dodajemy sos sojowy, czosnek granulowany, imbir i rozmącone jajko. Energicznie mieszamy i smażymy 3 minuty.","Dodajemy ugotowany makaron, mieszamy.","Gotowe danie posypujemy szczypiorkiem."]},
+{id:72,name:"Omlet na słodko z miodem",type:"kolacja",kcal:917,b:63,t:34,w:99,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Mąka pszenna pełnoziarnista – 3 łyżki (45 g)","Sól – 1 szczypta","Miód – 3 łyżeczki (36 g)","Truskawki – 300 g","Płatki migdałów – 20 g","Jogurt skyr – 10 łyżek (200 g)"],steps:["Jajka, mąkę i sól łączymy i wylewamy na rozgrzaną suchą patelnię. Smażymy do ścięcia, przekręcamy i smażymy chwilę.","Omlet przekładamy na talerz, smarujemy miodem i jogurtem skyr. Układamy owoce oraz płatki migdałów."]},
+{id:73,name:"Pudding czekoladowy z wiśniami",type:"śniadanie",kcal:901,b:57,t:36,w:93,ingredients:["Mleko roślinne niesłodzone – 1 szklanka (200 g)","Płatki ryżowe – 50 g","Kakao – 1.5 łyżki (15 g)","Wiśnie – 150 g","Erytrol – 3 łyżeczki (15 g)","Odżywka białkowa – 5 łyżek (50 g)","Płatki migdałów – 50 g"],steps:["Wszystkie składniki puddingu gotujemy w rondelku przez 6 minut.","Jeżeli składniki się nie połączą, blendujemy na wysokich obrotach. Dolewamy wodę do uzyskania preferowanej konsystencji.","Gotowe danie przekładamy do miseczek."]},
+{id:74,name:"Strogonow z ryżem",type:"obiad",kcal:896,b:50,t:35,w:93,ingredients:["Ryż basmati – 80 g","Polędwica wieprzowa – 175 g","Czosnek granulowany – 1 łyżeczka (3 g)","Papryka słodka – 0.5 łyżeczki (1.5 g)","Olej rzepakowy – 2.5 łyżki (25 g)","Cebula czerwona – 0.5 sztuki (40 g)","Pieczarki uprawne – 5 sztuk (100 g)","Papryka czerwona – 1 sztuka (170 g)","Jogurt roślinny – 4 łyżki (80 g)","Ogórek kiszony – 1 sztuka (50 g)","Natka pietruszki posiekana – 2 łyżeczki (10 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ryż gotujemy według instrukcji na opakowaniu.","Polędwicę kroimy w cienkie paski, przyprawiamy i smażymy na oleju małymi porcjami do zarumienienia.","Cebulę, pieczarki i paprykę kroimy i smażymy na tej samej patelni przez 6 minut.","Dodajemy mięso, jogurt roślinny i ogórka kiszonego. Mieszamy i podgrzewamy 5 minut. Doprawiamy.","Podajemy z ryżem posypanym natką pietruszki."]},
+{id:75,name:"Parówki z ketchupem, warzywami i pieczywem",type:"kolacja",kcal:922,b:61,t:46,w:64,ingredients:["Parówki z filetem z indyka – 5 sztuk (250 g)","Ketchup – 2.5 łyżki (50 g)","Ogórek świeży – 1 sztuka (150 g)","Pomidor – 1.5 sztuki (240 g)","Bułka wysokobiałkowa – 1.5 sztuki (120 g)"],steps:["Parówki podgrzewamy w wodzie.","Podajemy z ketchupem, pieczywem i kawałkami warzyw."]},
+{id:76,name:"Tost z serem oraz suszonymi pomidorami",type:"śniadanie",kcal:899,b:62,t:29,w:109,ingredients:["Chleb żytni razowy – 6 kromek (180 g)","Ser żółty – 7.5 plastra (150 g)","Pomidory suszone w oleju (odsączone) – 3 sztuki (60 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Rukola – 50 g","Zioła prowansalskie – 1 łyżeczka (3 g)"],steps:["Na kromce chleba układamy ser, kawałki pomidora, zioła i przykrywamy drugą kromką.","Tosty podpiekamy na patelni z oliwą 3 minuty pod przykryciem, obracamy na kolejne 3 minuty. Podajemy z rukolą."]},
+{id:77,name:"Burrito z mięsem oraz czarną fasolą",type:"obiad",kcal:894,b:40,t:32,w:99,ingredients:["Tortilla pełnoziarnista – 3 sztuki (180 g)","Ryż basmati – 75 g","Mięso mielone z indyka – 250 g","Fasola czarna konserwowa – 240 g","Kolendra świeża – 1 garść (4 g)","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Pomidory z puszki – 0.5 opakowania (200 g)","Olej rzepakowy – 3.5 łyżki (35 g)","Kumin – 0.5 łyżeczki (2.5 g)","Papryka wędzona – 0.5 łyżeczki (1.5 g)"],steps:["Ryż gotujemy według instrukcji na opakowaniu.","W rondelku na oleju dusimy cebulę, czosnek oraz mięso.","Dodajemy pomidory z puszki i gotujemy, aż sos zgęstnieje.","Dodajemy czarną fasolę i przyprawiamy kolendrą, solą, pieprzem, wędzoną papryką i kuminem.","Sos mieszamy z ryżem, wykładamy na tortillę i zwijamy."]},
+{id:78,name:"Owsianka a la Mars",type:"kolacja",kcal:882,b:56,t:32,w:101,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Mleko 1.5% – 0.6 szklanki (150 g)","Miód – 2 łyżeczki (24 g)","Masło orzechowe – 2.5 łyżeczki (25 g)","Czekolada gorzka 70% – 3 kostki (30 g)","Jogurt skyr – 15 łyżek (300 g)"],steps:["Płatki owsiane gotujemy na mleku z połową miodu przez 6-7 minut. Mieszamy z jogurtem skyr.","Masło orzechowe mieszamy z pozostałym miodem.","Gorzką czekoladę rozpuszczamy w kąpieli wodnej.","W miseczce układamy płatki owsiane, masło orzechowe z miodem, polewamy czekoladą. Schładzamy w lodówce przez 20 minut."]},
+{id:79,name:"Owsianka z kawałkami kiwi oraz borówkami",type:"śniadanie",kcal:912,b:62,t:32,w:106,ingredients:["Płatki owsiane górskie – 8 łyżek (80 g)","Jogurt skyr – 17 łyżek (340 g)","Kiwi – 1 sztuka (75 g)","Borówki – 100 g","Migdały – 50 g","Erytrol – 3 łyżeczki (15 g)"],steps:["Płatki gotujemy w wodzie (150-200 ml) do miękkości.","Mieszamy z jogurtem skyr, borówkami oraz erytrolem.","Posypujemy migdałami oraz kawałkami kiwi."]},
+{id:80,name:"Jednogarnkowe danie z kurczakiem, ryżem i warzywami",type:"obiad",kcal:887,b:53,t:34,w:95,ingredients:["Marchew – 1 sztuka (80 g)","Pietruszka korzeń – 0.5 sztuki (25 g)","Batat – 200 g","Mięso z piersi kurczaka – 200 g","Bulion warzywny – 1 szklanka (250 g)","Ryż biały – 55 g","Zioła prowansalskie – 0.5 łyżeczki (1.5 g)","Kurkuma – 0.5 łyżeczki (1 g)","Sól – 1 szczypta","Oliwa z oliwek – 6 łyżeczek (30 g)"],steps:["Warzywa obieramy i kroimy w kostkę podobnej wielkości.","Wkładamy do garnka, zalewamy wodą do połowy warzyw, zagotowujemy. Dodajemy zioła i kurkumę.","Gdy warzywa będą al dente, dodajemy pokrojone surowe mięso.","Po 2 minutach dodajemy ryż i bulion. Gotujemy do miękkości.","Dodajemy sól i oliwę."]},
+{id:81,name:"Cynamonowa kasza jaglana z bananem",type:"kolacja",kcal:898,b:62,t:31,w:106,ingredients:["Kasza jaglana – 60 g","Mleko wysokobiałkowe 0.5% – 0.6 szklanki (150 g)","Cynamon – 0.5 łyżeczki (2 g)","Banan – 1 sztuka (120 g)","Jogurt skyr – 15 łyżek (300 g)","Erytrol – 1 łyżeczka (5 g)","Masło orzechowe – 5.5 łyżeczki (55 g)"],steps:["Kaszę gotujemy na mleku według instrukcji.","Podczas gotowania dodajemy cynamon oraz erytrol i dokładnie mieszamy.","Gotową kaszę przekładamy do miseczki, dodajemy masło orzechowe i mieszamy.","Kaszę mieszamy z jogurtem skyr i podajemy z kawałkami banana."]},
+{id:82,name:"Pasta z serka wiejskiego z suszonymi pomidorami i jarmużem",type:"śniadanie",kcal:890,b:61,t:31,w:102,ingredients:["Serek wiejski wysokobiałkowy – 340 g","Jarmuż – 10 g","Pomidor – 1 sztuka (160 g)","Pomidory suszone w oleju (odsączone) – 2 sztuki (40 g)","Chleb żytni razowy – 5 kromek (150 g)","Szczypiorek siekany – 1 łyżeczka (5 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Masło extra – 3 łyżeczki (15 g)"],steps:["Serek mieszamy z posiekanymi suszonymi pomidorami, szczypiorkiem, solą i pieprzem.","Kroimy pomidora i myjemy jarmuż.","Pastę podajemy z pomidorem, jarmużem i pieczywem posmarowanym masłem."]},
+{id:83,name:"Makaron z indykiem, suszonymi pomidorami i jarmużem",type:"obiad",kcal:901,b:53,t:38,w:86,ingredients:["Mięso z piersi indyka – 175 g","Pomidory suszone w oleju (odsączone) – 3 sztuki (60 g)","Jarmuż – 45 g","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Makaron pełnoziarnisty – 100 g","Oliwa z oliwek – 2.5 łyżki (25 g)","Natka pietruszki posiekana – 1 łyżeczka (5 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Mięso kroimy w paski ok. 2 cm. Przyprawiamy solą i pieprzem. Skrapiamy oliwą.","Makaron gotujemy według instrukcji.","Siekamy cebulę, czosnek i suszone pomidory. Podsmażamy na oliwie.","Dodajemy mięso i smażymy razem 6-8 minut mieszając.","Gdy indyk jest gotowy, dodajemy jarmuż, doprawiamy solą, pieprzem i natką pietruszki.","Makaron mieszamy z bazą i wykładamy na talerz."]},
+{id:84,name:"Syrniki z owocami",type:"kolacja",kcal:879,b:57,t:36,w:96,ingredients:["Ser twarogowy półtłusty – 2 opakowania (500 g)","Jajko kurze całe – 1 sztuka (56 g)","Mąka pszenna pełnoziarnista – 3 łyżki (45 g)","Ksylitol – 3 łyżki (45 g)","Wanilia ekstrakt – 1 łyżeczka (3 g)","Olej rzepakowy – 4 łyżki (40 g)","Mąka pszenna typ 500 – 4 łyżki (48 g)","Borówki – 400 g"],steps:["Łączymy ser twarogowy, jajko, mąkę pełnoziarnistą, ksylitol i ekstrakt waniliowy. Dokładnie mieszamy.","Formujemy okrągłe kotleciki. Obtaczamy w mące pszennej.","Smażymy na rozgrzanym oleju na złoty kolor. Odwracamy i smażymy do zezłocenia."]},
+{id:85,name:"Serek wiejski z migdałami, waflami ryżowymi i dżemem truskawkowym",type:"śniadanie",kcal:901,b:62,t:36,w:92,ingredients:["Serek wiejski naturalny – 2 opakowania (400 g)","Migdały – 30 g","Wafle ryżowe – 6 sztuk (60 g)","Dżem truskawkowy – 4 łyżeczki (60 g)"],steps:["Serek wiejski wymieszaj z dżemem truskawkowym oraz migdałami.","Zjedz z waflami ryżowymi."]},
+{id:86,name:"Wołowina słodko kwaśna",type:"obiad",kcal:873,b:49,t:35,w:91,ingredients:["Ryż basmati – 90 g","Wołowina rostbef – 175 g","Imbir – 1 plaster (5 g)","Por – 0.5 sztuki (70 g)","Cebula dymka – 1 sztuka (20 g)","Czosnek – 1 ząbek (6 g)","Marchew – 1 sztuka (80 g)","Sezam nasiona – 2 łyżeczki (10 g)","Olej rzepakowy – 2 łyżeczki (10 g)","Sos sojowy – 1 łyżka (10 g)","Olej sezamowy – 1 łyżeczka (5 g)","Sok z cytryny – 2 łyżki (12 g)"],steps:["Ryż gotujemy według instrukcji.","Składniki sosu (sos sojowy, olej sezamowy, sok z cytryny i wodę) mieszamy ze sobą.","Wołowinę, imbir, pora, cebulę dymkę, czosnek i marchew kroimy na cienkie paski.","Na patelni rozgrzewamy olej, podsmażamy warzywa przez 5 minut.","Na tej samej patelni podsmażamy wołowinę 5-7 minut, dodajemy sos i sezam. Podajemy z ryżem."]},
+{id:87,name:"Tost z szynką, serem i warzywami",type:"kolacja",kcal:863,b:61,t:32,w:90,ingredients:["Chleb żytni razowy – 5 kromek (150 g)","Serek śmietankowy – 3 łyżki (75 g)","Szynka z kurczaka – 10 plastrów (100 g)","Ser mozzarella kulka light – 1 opakowanie (120 g)","Pomidor – 1 sztuka (160 g)","Rzodkiewka – 3 sztuki (45 g)","Szczypiorek siekany – 3 łyżeczki (15 g)"],steps:["Piekarnik nagrzewamy do 180°C termoobieg.","Pieczywo smarujemy serkiem śmietankowym. Nakładamy mozzarellę i szynkę.","Pieczemy ok. 6 minut do rozpuszczenia sera.","Układamy pomidora i rzodkiewkę. Posypujemy szczypiorkiem."]},
+{id:88,name:"Jogurt grecki z orzechami włoskimi oraz bananem",type:"śniadanie",kcal:908,b:60,t:36,w:90,ingredients:["Jogurt grecki – 10 łyżek (200 g)","Dżem z czarnych porzeczek – 3 łyżeczki (45 g)","Orzechy włoskie – 25 g","Banan – 2 sztuki (240 g)","Odżywka białkowa – 6 łyżek (60 g)"],steps:["Kroimy banana i siekamy orzechy włoskie.","Owoce mieszamy z jogurtem greckim oraz odżywką białkową. Przekładamy do miseczki.","Nakładamy dżem z czarnych porzeczek i posypujemy orzechami włoskimi."]},
+{id:89,name:"Pieczone placki ziemniaczane z sosem czosnkowym",type:"obiad",kcal:933,b:47,t:32,w:123,ingredients:["Ziemniaki – 400 g","Marchew – 1 sztuka (80 g)","Cebula – 0.5 sztuki (40 g)","Mąka pszenna typ 500 – 3 łyżki (36 g)","Jajko kurze całe – 1 sztuka (56 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Tymianek suszony – 0.5 łyżeczki (1.5 g)","Olej rzepakowy – 2.5 łyżki (25 g)","Jogurt skyr – 1.5 opakowania (225 g)","Sok z cytryny – 1 łyżka (6 g)","Czosnek granulowany – 0.5 łyżeczki (1.5 g)","Oregano suszone – 1 szczypta"],steps:["Piekarnik rozgrzewamy do 220°C góra-dół.","Ziemniaki, marchew i cebulę ścieramy na tarce. Odciskamy nadmiar wody.","Dodajemy mąkę, jajko, sól, pieprz i tymianek. Mieszamy.","Formujemy płaskie placuszki, układamy na papierze skropionym olejem. Skrapiamy olejem i pieczemy 25-30 min.","Składniki sosu mieszamy w miseczce.","Placuszki podajemy z sosem."]},
+{id:90,name:"Serek wiejski z masłem orzechowym, dżemem jagodowym i płatkami owsianymi",type:"kolacja",kcal:912,b:67,t:35,w:89,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Masło orzechowe – 3 łyżeczki (30 g)","Dżem jagodowy – 4 łyżeczki (60 g)","Płatki owsiane górskie – 7 łyżek (70 g)","Odżywka białkowa – 2 łyżki (20 g)"],steps:["Serek wiejski przekładamy do miseczki, dodajemy odżywkę białkową, masło orzechowe, dżem jagodowy oraz płatki owsiane. Całość mieszamy."]},
+{id:91,name:"Placuszki twarogowe",type:"śniadanie",kcal:699,b:53,t:26,w:64,ingredients:["Ser twarogowy półtłusty – 5 plastrów (150 g)","Jajko kurze całe – 2 sztuki (112 g)","Erytrol – 3 łyżeczki (15 g)","Mąka orkiszowa pełnoziarnista – 4.5 łyżki (45 g)","Olej rzepakowy – 1 łyżeczka (5 g)","Jogurt naturalny 2% – 4 łyżki (80 g)","Borówki – 100 g","Miód – 1 łyżeczka (12 g)"],steps:["Oddzielamy żółtka i białka. Białka ubijamy na pianę.","Przesiewamy mąkę, dodajemy do zblendowanego sera, erytrolu i żółtek.","Dodajemy pianę z białek i mieszamy łyżką.","Na rozgrzanym oleju smażymy małe placuszki. Obracamy gdy się zetną. Smażymy do zarumienienia.","Podajemy z jogurtem naturalnym, miodem i borówkami."]},
+{id:92,name:"Leniwe ze śliwkami",type:"obiad",kcal:902,b:51,t:37,w:95,ingredients:["Kluski leniwe – 2.5 porcji (265 g)","Śliwki – 5 sztuk (150 g)","Masło extra – 5 łyżeczek (25 g)","Cynamon – 1 łyżeczka (4 g)","Erytrol – 2 łyżeczki (10 g)","Jogurt naturalny 2% – 0.5 opakowania (200 g)"],steps:["Kluski leniwe przygotowujemy wg przepisu.","Owoce kroimy na kawałki.","W garnuszku rozgrzewamy masło, dodajemy owoce, cynamon i erytrol. Prażymy do rozpadnięcia owoców.","Leniwe podajemy z jogurtem i prażonymi owocami."]},
+{id:93,name:"Kanapka z szynką z indyka",type:"kolacja",kcal:697,b:32,t:33,w:74,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Żurawina do mięs – 2 łyżeczki (30 g)","Rukola – 20 g","Szynka z indyka – 3 plastry (45 g)","Ser camembert – 3 plastry (90 g)","Masło extra – 2 łyżeczki (10 g)"],steps:["Chleb razowy smarujemy żurawiną oraz masłem.","Układamy rukolę, szynkę z indyka oraz ser camembert. Przykrywamy kromką chleba."]},
+{id:94,name:"Tortilla na ciepło z wędliną, serem i jajkiem",type:"śniadanie",kcal:696,b:46,t:38,w:36,ingredients:["Tortilla pełnoziarnista – 1 sztuka (60 g)","Szynka z kurczaka – 4 plastry (40 g)","Pomidor – 6 plastrów (120 g)","Ser mozzarella kulka – 4 plastry (60 g)","Jajko kurze całe – 3 sztuki (168 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 1 łyżeczka (5 g)"],steps:["Na patelni rozgrzewamy oliwę.","W miseczce rozkłócamy jajka. Dodajemy pokrojony ser, sól i pieprz.","Na patelni układamy plastry pomidora i szynki.","Zalewamy masą jajeczną. Przykrywamy tortillą. Smażymy pod przykryciem do ścięcia. Składamy na pół."]},
+{id:95,name:"Szaszłyki z kiełbasy",type:"obiad",kcal:870,b:45,t:53,w:57,ingredients:["Frankfurterki wieprzowe – 5 sztuk (210 g)","Papryka czerwona – 1 sztuka (170 g)","Cebula – 1 sztuka (80 g)","Pomidorki koktajlowe – 10 sztuk (200 g)","Oliwa z oliwek – 2 łyżeczki (10 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Zioła prowansalskie – 0.5 łyżeczki","Chleb żytni razowy – 2 kromki (60 g)"],steps:["Warzywa kroimy i wkładamy do miski z oliwą, solą i ziołami.","Kiełbaski kroimy w talarki.","Na patyczki nabijamy kiełbaski, paprykę, cebulę i pomidorki.","Grillujemy ok. 15 minut, obracając.","Podajemy z pieczywem."]},
+{id:96,name:"Pinsa z szynką i suszonymi pomidorami",type:"kolacja",kcal:682,b:40,t:26,w:67,ingredients:["Pinsa – 0.5 sztuki (110 g)","Pomidory z puszki – 40 g","Ser mozzarella żółta – 1.5 plastra (20 g)","Rukola – 20 g","Ser mozzarella kulka – 4 plastry (60 g)","Pomidorki koktajlowe – 5 sztuk (100 g)","Szynka z kurczaka – 4 plastry (40 g)","Pomidory suszone w oleju (odsączone) – 2 sztuki (40 g)","Ser Grana Padano starty – 1 łyżka (10 g)"],steps:["Nagrzewamy piekarnik według instrukcji na opakowaniu.","Pinsę smarujemy pomidorami z puszki, nakładamy tartą mozzarellę. Pieczemy wg czasu na opakowaniu.","Na ciepłą pinsę nakładamy rukolę, mozzarellę, pomidorki, szynkę, suszone pomidory oraz ser grana padano."]},
+{id:97,name:"Pieczywo z wiosennym serkiem wiejskim, rzodkiewką i ogórkiem",type:"śniadanie",kcal:708,b:46,t:25,w:80,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Rzodkiewka – 6 sztuk (90 g)","Ogórek świeży – 1 sztuka (150 g)","Szczypiorek siekany – 2 łyżeczki (10 g)","Koper posiekany – 1 łyżeczka (4 g)","Chleb żytni razowy – 4 kromki (120 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 1 łyżka (10 g)"],steps:["Warzywa kroimy w drobną kostkę. Koperek i szczypiorek siekamy, dodajemy do serka. Doprawiamy solą i pieprzem.","Serek z warzywami podajemy z pieczywem skropionym oliwą."]},
+{id:98,name:"Kebab z grilla",type:"obiad",kcal:912,b:50,t:36,w:96,ingredients:["Tortilla pełnoziarnista – 2 sztuki (120 g)","Mięso z piersi kurczaka – 175 g","Ogórek świeży – 1 sztuka (150 g)","Papryka czerwona – 1 sztuka (170 g)","Miks sałat – 50 g","Ketchup – 2 łyżki (40 g)","Oliwa z oliwek – 2 łyżki (20 g)","Sos barbecue – 3 łyżeczki (30 g)","Papryka wędzona – 1 łyżeczka (3 g)","Papryka słodka – 0.5 łyżeczki (2 g)"],steps:["Mieszamy składniki marynaty.","Mięso kroimy w paski, polewamy marynatą i odstawiamy na min. 20 minut.","Kroimy warzywa na kawałki.","Mięso grillujemy ok. 15 minut, obracając.","Na tortillach układamy sałatę, kurczaka, paprykę i ogórka. Polewamy ketchupem i zwijamy."]},
+{id:99,name:"Omlet z szynką drobiową",type:"kolacja",kcal:691,b:41,t:27,w:73,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Szynka z kurczaka – 4 plastry (40 g)","Pomidor – 1 sztuka (160 g)","Masło extra – 2 łyżeczki (10 g)","Chleb pszenny – 4 kromki (120 g)","Natka pietruszki posiekana – 1 łyżeczka (5 g)","Sól – 1 szczypta"],steps:["Jajka mieszamy z solą. Wędlinę kroimy na kawałeczki.","Jajka wylewamy na rozgrzaną patelnię, dodajemy wędlinę. Przykrywamy i dusimy na małym ogniu, aż jajka się zetną. Delikatnie odwracamy.","Pomidora obieramy, usuwamy nasiona i kroimy w kostkę.","Omlet podajemy z pieczywem posmarowanym masłem i pomidorem. Posypujemy natką pietruszki."]},
+{id:100,name:"Kanapki z szynką z kurczaka i rzodkiewkami",type:"śniadanie",kcal:701,b:54,t:24,w:73,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Masło extra – 3 łyżeczki (15 g)","Szynka z kurczaka – 10 plastrów (100 g)","Rzodkiewka – 7 sztuk (100 g)","Serek wiejski naturalny – 1 opakowanie (200 g)"],steps:["Pieczywo smarujemy masłem, nakładamy szynkę z kurczaka.","Warzywa kroimy w plasterki. Nakładamy na kanapki lub podajemy osobno.","Serek wiejski zjadamy do kanapek."]},
+{id:101,name:"Pizza na gotowym spodzie z pieczarkami i szynką",type:"obiad",kcal:879,b:53,t:43,w:70,ingredients:["Placek pszenny Piadina – 1 sztuka (120 g)","Oliwa z oliwek – 1 łyżka (10 g)","Passata pomidorowa – 0.2 szklanki (50 g)","Sól – 1 szczypta","Zioła prowansalskie – 0.5 łyżeczki (1.5 g)","Pieczarki uprawne – 3 sztuki (60 g)","Ser mozzarella żółta – 6 plastrów (90 g)","Cebula – 0.5 sztuki (40 g)","Szynka z indyka – 8 plastrów (120 g)","Rukola – 25 g"],steps:["Nagrzewamy piekarnik do 240°C góra-dół lub grill.","Spód smarujemy oliwą, passatą, posypujemy solą i ziołami.","Pieczarki kroimy na cienkie plasterki.","Układamy pieczarki, cebulę i szynkę. Wierzch posypujemy serem.","Pieczemy ok. 8 minut. Po upieczeniu posypujemy rukolą."]},
+{id:102,name:"Puchate placuszki z bananem",type:"kolacja",kcal:692,b:45,t:26,w:75,ingredients:["Banan – 1.5 sztuki (180 g)","Jajko kurze całe – 3 sztuki (168 g)","Mąka pszenna typ 550 – 50 g","Płatki owsiane błyskawiczne – 7 łyżek (70 g)","Masło extra – 7 łyżeczek (35 g)","Jogurt skyr – 3 opakowania (450 g)","Erytrol – 2 łyżeczki (10 g)"],steps:["Płatki mielimy na mąkę. Dodajemy mąkę pszenną, sól i erytrol. Mieszamy.","Banana rozgniatamy i łączymy z żółtkiem. Mieszamy z suchymi składnikami.","Białka ubijamy na pianę, delikatnie łączymy z masą bananową.","Smażymy małe placuszki ok. 1-2 minuty z każdej strony.","Placuszki smarujemy masłem, podajemy z jogurtem."]},
+{id:103,name:"Kanapki z serem twarogowym, masłem orzechowym i dżemem wiśniowym",type:"śniadanie",kcal:690,b:41,t:28,w:79,ingredients:["Chleb żytni razowy – 3 kromki (90 g)","Ser twarogowy chudy – 0.5 opakowania (125 g)","Masło orzechowe – 5 łyżeczek (50 g)","Dżem wiśniowy – 3 łyżeczki (45 g)"],steps:["Ser twarogowy układamy na kromkach chleba i rozsmarowujemy. Nakładamy masło orzechowe oraz dżem wiśniowy."]},
+{id:104,name:"Szybki makaron z indykiem duszonym w pomidorach",type:"obiad",kcal:901,b:53,t:39,w:82,ingredients:["Mięso z piersi indyka – 175 g","Pomidory z puszki – 1 opakowanie (400 g)","Jarmuż – 30 g","Natka pietruszki posiekana – 2 łyżeczki (10 g)","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Makaron pełnoziarnisty – 90 g","Oliwki zielone – 20 sztuk (60 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 2.5 łyżki (25 g)"],steps:["Mięso kroimy w paski, przyprawiamy solą, pieprzem i czosnkiem. Skrapiamy oliwą.","Na oliwie dusimy cebulę, dodajemy mięso i dusimy dalej.","Gdy indyk jest ścięty, dodajemy pomidory z puszki. Gotujemy aż mięso będzie miękkie.","Gotujemy makaron według instrukcji.","Sos przyprawiamy, dodajemy oliwki i jarmuż. Mieszamy.","Dodajemy makaron, mieszamy, wykładamy na talerz. Posypujemy natką pietruszki."]},
+{id:105,name:"Pasta jajeczno-twarogowa z suszonymi pomidorami",type:"kolacja",kcal:713,b:43,t:34,w:66,ingredients:["Jajko kurze całe – 2 sztuki (112 g)","Ser twarogowy półtłusty – 3 plastry (90 g)","Serek śmietankowy – 2 łyżki (50 g)","Pomidory suszone w oleju (odsączone) – 2 sztuki (40 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Chleb żytni razowy – 3 kromki (90 g)","Ogórek świeży – 1 sztuka (150 g)","Natka pietruszki posiekana – 2 łyżeczki (10 g)"],steps:["Jajka gotujemy na twardo 7-8 minut. Studzimy i obieramy.","Dodajemy twaróg i serek, rozgniatamy widelcem na pastę. Doprawiamy.","Pomidorki odsączamy i drobno siekamy, dodajemy do pasty i mieszamy.","Pieczywo smarujemy pastą, podajemy z kawałkami ogórka. Posypujemy natką pietruszki."]},
+{id:106,name:"Serek wiejski z owocami i orzechami włoskimi",type:"śniadanie",kcal:702,b:46,t:34,w:59,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Kiwi – 2 sztuki (150 g)","Borówki – 150 g","Migdały – 15 g","Orzechy włoskie – 20 g"],steps:["Do miseczki przekładamy serek wiejski.","Dodajemy kiwi, borówki, migdały oraz orzechy włoskie."]},
+{id:107,name:"Kurczak curry z jabłkiem",type:"obiad",kcal:892,b:54,t:34,w:95,ingredients:["Mięso z piersi kurczaka – 200 g","Ryż basmati – 75 g","Jabłko – 1 sztuka (150 g)","Kalafior – 100 g","Mleczko kokosowe 12% – 0.5 opakowania (200 g)","Imbir – 1 plaster (5 g)","Czosnek – 1 ząbek (6 g)","Cebula – 0.5 sztuki (40 g)","Curry – 0.5 łyżeczki (2 g)","Papryka słodka – 0.5 łyżeczki (1.5 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ryż gotujemy według instrukcji.","Kurczaka kroimy w kostkę. Posypujemy curry i słodką papryką, odstawiamy.","Cebulę, czosnek i imbir siekamy, podsmażamy. Dodajemy kurczaka i smażymy 5 minut.","Jabłko kroimy w łódeczki, kalafiora na różyczki. Wkładamy na patelnię, zalewamy mleczkiem kokosowym. Dusimy 10-20 min. Doprawiamy.","Sos podajemy z ryżem."]},
+{id:108,name:"Serek wiejski z rzodkiewką, pomidorem i chlebem razowym",type:"kolacja",kcal:693,b:46,t:24,w:81,ingredients:["Serek wiejski naturalny – 1.5 opakowania (300 g)","Chleb żytni razowy – 4 kromki (120 g)","Pomidor – 1 sztuka (160 g)","Rzodkiewka – 4 sztuki (60 g)","Szczypiorek siekany – 1 łyżeczka (5 g)","Masło extra – 2 łyżeczki (10 g)"],steps:["Do serka wiejskiego dodajemy pokrojone w kosteczkę warzywa. Jemy z pieczywem posmarowanym masłem."]},
+{id:109,name:"Kakaowa owsianka z siekanymi orzechami",type:"śniadanie",kcal:717,b:39,t:27,w:89,ingredients:["Płatki owsiane górskie – 8 łyżek (80 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Kakao – 0.5 łyżki (5 g)","Erytrol – 1 łyżeczka (5 g)","Orzechy włoskie – 30 g","Maliny – 100 g","Jogurt skyr – 1 opakowanie (150 g)"],steps:["Do garnka wlewamy mleko, dodajemy płatki, kakao i erytrol. Mieszamy i podgrzewamy do zagotowania.","Odstawiamy, mieszamy z jogurtem skyr i przekładamy do miseczki.","Posypujemy siekanymi orzechami włoskimi i owocami."]},
+{id:110,name:"Krem pieczarkowy",type:"obiad",kcal:885,b:54,t:35,w:98,ingredients:["Pieczarki uprawne – 20 sztuk (400 g)","Mięso z piersi kurczaka – 150 g","Ziemniaki – 5 sztuk (350 g)","Marchew – 1 sztuka (80 g)","Cebula – 2 sztuki (160 g)","Czosnek – 2 ząbki (12 g)","Olej rzepakowy – 3 łyżki (30 g)","Natka pietruszki posiekana – 4 łyżeczki (20 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Warzywa i pieczarki obieramy, kroimy w kostkę i podsmażamy 6 min. Zalewamy wodą, gotujemy pod przykryciem 15 min.","Całość blendujemy.","Kurczaka kroimy w kostkę i dodajemy do gorącej zupy. Gotujemy pod przykryciem 7-10 min.","Doprawiamy solą, pieprzem i natką pietruszki."]},
+{id:111,name:"Omlet z serem gouda, szynką i pieczarkami",type:"kolacja",kcal:728,b:45,t:31,w:73,ingredients:["Jajko kurze całe – 3 sztuki (168 g)","Ser gouda – 30 g","Szynka z kurczaka – 2 plastry (20 g)","Cebula – 0.5 sztuki (40 g)","Czosnek – 1 ząbek (6 g)","Pieczarki uprawne – 4 sztuki (80 g)","Pomidorki koktajlowe – 6 sztuk (120 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 1 łyżeczka (5 g)","Chleb żytni razowy – 4 kromki (120 g)"],steps:["Jajka wbijamy do miski, dodajemy starty ser, sól i pieprz. Mieszamy.","Na oliwie smażymy szynkę, cebulę, czosnek i pieczarki.","Dodajemy pomidorki i zalewamy masą jajeczną. Dusimy pod przykryciem aż jajka się zetną.","Omlet przekładamy na talerz. Podajemy z pieczywem."]},
+{id:112,name:"Pasta z jajek z rzodkiewką, ogórkiem i szczypiorkiem",type:"śniadanie",kcal:651,b:30,t:31,w:69,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Rukola – 20 g","Rzodkiewka – 4 sztuki (60 g)","Majonez wegański – 1 łyżka (20 g)","Ogórek świeży – 0.5 sztuki (75 g)","Jajko kurze całe – 3 sztuki (168 g)","Szczypiorek siekany – 3 łyżeczki (15 g)","Sól – 1 szczypta"],steps:["Jajka gotujemy we wrzącej wodzie 7-8 min, studzimy i obieramy.","Ścieramy jajka na tarce, dodajemy szczypiorek, sól i majonez. Mieszamy.","Kroimy warzywa.","Pastę podajemy z warzywami, pieczywem i rukolą."]},
+{id:113,name:"Tortilla z czerwoną fasolą i salsą pomidorową",type:"obiad",kcal:892,b:40,t:40,w:93,ingredients:["Tortilla pełnoziarnista – 2 sztuki (120 g)","Ser gouda – 4 plastry (60 g)","Fasola czerwona konserwowa – 120 g","Salami – 1.5 plastra (25 g)","Papryka czerwona – 1 sztuka (170 g)","Pomidor – 1 sztuka (160 g)","Cebula – 0.5 sztuki (40 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Kolendra świeża – 0.5 garści (2 g)"],steps:["Na tortillę kładziemy ser gouda, fasolę i salami. Przykrywamy drugim plackiem. Smażymy na małym ogniu pod przykryciem ok. 3-4 min z każdej strony.","W międzyczasie kroimy paprykę, pomidora i cebulę w kostkę. Mieszamy, doprawiamy.","Quesadillę ściągamy z patelni, podajemy z salsą. Posypujemy kolendrą."]},
+{id:114,name:"Omlet z pieczywem",type:"kolacja",kcal:703,b:44,t:34,w:59,ingredients:["Jajko kurze całe – 4 sztuki (224 g)","Mleko 1.5% – 0.5 szklanki (125 g)","Mąka pszenna typ 500 – 1.5 łyżki (18 g)","Szczypiorek siekany – 2 łyżeczki (10 g)","Ser typu Feta – 1 plaster (25 g)","Pomidor – 1 sztuka (160 g)","Chleb żytni razowy – 2 kromki (60 g)","Oliwa z oliwek – 1 łyżeczka (5 g)"],steps:["Jajka ubijamy z mlekiem, dodajemy mąkę pszenną i ubijamy dalej.","Patelnię skrapiamy oliwą, przecieramy i rozgrzewamy.","Wylewamy masę omletową i przykrywamy pokrywką.","Po 2 minutach zmniejszamy ogień. Smażymy pod przykryciem 5 min.","Kruszymy ser, obsypujemy nim omlet. Posypujemy szczypiorkiem.","Smażymy do ścięcia warstwy wierzchniej.","Podajemy z pomidorem i pieczywem."]},
+{id:115,name:"Owsianka z serem twarogowym i owocami",type:"śniadanie",kcal:710,b:38,t:27,w:83,ingredients:["Płatki owsiane górskie – 5 łyżek (50 g)","Ser twarogowy półtłusty – 0.5 opakowania (125 g)","Banan – 1 sztuka (120 g)","Erytrol – 1 łyżeczka (5 g)","Borówki – 50 g","Orzechy pistacjowe niesolone – 35 g"],steps:["Płatki zalewamy wodą i gotujemy do miękkości.","Do blendera przekładamy płatki, banana, ser twarogowy i erytrol. Blendujemy na gładką masę.","Przekładamy do miseczki, dodajemy borówki i orzechy pistacjowe."]},
+{id:116,name:"Kurczak pieczony z ziemniakami",type:"obiad",kcal:898,b:50,t:40,w:91,ingredients:["Mięso z piersi kurczaka – 175 g","Ziemniaki – 5 sztuk (350 g)","Oliwa z oliwek – 7 łyżeczek (35 g)","Papryka czerwona – 1 sztuka (170 g)","Cebula – 1 sztuka (80 g)","Czosnek – 1 ząbek (6 g)","Kumin – 1 łyżeczka (5 g)","Kurkuma – 1.5 łyżeczki (3 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Bakłażan – 0.3 sztuki (65 g)"],steps:["Nagrzewamy piekarnik do 200°C góra-dół.","Ziemniaki obieramy, kroimy, podgotowujemy ok. 5-6 min i odcedzamy.","Do blaszki wsypujemy kumin i kurkumę. Dodajemy pokrojone warzywa i ziemniaki.","Spłaszczamy kurczaka i wkładamy do blaszki.","Wlewamy oliwę, dodajemy sól i pieprz. Mieszamy.","Pieczemy 25 minut bez przykrycia."]},
+{id:117,name:"Kanapki z serem gouda i warzywami",type:"kolacja",kcal:705,b:37,t:32,w:73,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Pomidor – 1 sztuka (160 g)","Ogórek świeży – 0.5 sztuki (75 g)","Rukola – 30 g","Ser gouda – 6 plastrów (90 g)","Serek śmietankowy – 4 łyżeczki (40 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Kromki chleba smarujemy serkiem śmietankowym.","Układamy rukolę, ser gouda, plastry pomidora i ogórka.","Posypujemy solą i pieprzem."]},
+{id:118,name:"Bagietka z szynką parmeńską",type:"śniadanie",kcal:700,b:41,t:29,w:70,ingredients:["Sałata – 20 g","Szynka parmeńska – 4 plastry (60 g)","Ser gouda – 3 plastry (45 g)","Pomidorki koktajlowe – 5 sztuk (100 g)","Serek śmietankowy – 3 łyżeczki (30 g)","Półbagietka – 1 sztuka (110 g)"],steps:["Bagietkę kroimy na pół. Możemy ją podpiec na patelni.","Smarujemy serkiem śmietankowym.","Układamy sałatę, szynkę parmeńską, ser gouda i pomidorki."]},
+{id:119,name:"Kurczak w kremowym sosie curry",type:"obiad",kcal:904,b:54,t:31,w:101,ingredients:["Mięso z piersi kurczaka – 200 g","Mleczko kokosowe 12% – 5 łyżek (100 g)","Ryż basmati – 100 g","Cebula – 1 sztuka (80 g)","Czosnek – 2 ząbki (12 g)","Curry – 1 łyżeczka (4 g)","Kurkuma – 1 łyżeczka (2 g)","Imbir – 1 plaster (5 g)","Skórka z cytryny – 1 łyżeczka (3 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 1.5 łyżki (15 g)","Ogórek świeży – 1 sztuka (150 g)"],steps:["Ryż gotujemy według instrukcji.","Kurczaka kroimy na małe kawałki, przyprawiamy solą i pieprzem.","Mieszamy czosnek, imbir i skórkę z cytryny. Kurczaka marynujemy min. 5 min.","Kurczaka i cebulę smażymy na oliwie do złotego koloru.","Zmniejszamy ogień, dodajemy curry i kurkumę. Mieszamy i smażymy 1 minutę.","Dodajemy mleczko kokosowe, gotujemy 4-5 min mieszając. Doprawiamy solą.","Gorące curry podajemy z ryżem. Do posiłku zjadamy kawałki ogórka."]},
+{id:120,name:"Skyr z orzechami i bananem",type:"kolacja",kcal:719,b:48,t:27,w:82,ingredients:["Jogurt skyr – 2 opakowania (300 g)","Banan – 2 sztuki (240 g)","Mieszanka orzechów – 50 g"],steps:["Jogurt zjedz z owocami i orzechami."]}
+];
+
+const DAYS = ['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
+const DAYS_SHORT = ['Pon','Wt','Śr','Czw','Pt','Sob','Nd'];
+const SLOT_NAMES = ['Śniadanie','Obiad','Kolacja'];
+const SLOT_TYPES = ['śniadanie','obiad','kolacja'];
+const CAT_ICONS = {'Nabiał i jajka':'🥚','Mięso i wędliny':'🍗','Warzywa i owoce':'🥦','Pieczywo i makarony':'🍞','Kasze i ryż':'🌾','Puszki i słoiki':'🥫','Orzechy i tłuszcze':'🥑','Przyprawy i inne':'🧂'};
+
+let plan = JSON.parse(localStorage.getItem('respo-plan')||'{}');
+let checked = JSON.parse(localStorage.getItem('respo-checked')||'{}');
+
+function savePlan() { localStorage.setItem('respo-plan', JSON.stringify(plan)); updateHeaderStats(); }
+function saveChecked() { localStorage.setItem('respo-checked', JSON.stringify(checked)); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active', ['meals','planner','shopping'][i]===name);
+  });
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(name==='planner') renderPlanner();
+  if(name==='shopping') generateShopping();
+}
+
+function badgeClass(t) { return t==='śniadanie'?'badge-s':t==='obiad'?'badge-d':'badge-k'; }
+function badgeLabel(t) { return t==='śniadanie'?'Śniadanie · P1':t==='obiad'?'Obiad · P2':'Kolacja · P3'; }
+
+const BASE_DAY_KCAL = 2300;
+let scaleFactor = 1.0;
+
+function onScalerChange() {
+  const v = parseInt(document.getElementById('sl-kcal').value);
+  scaleFactor = v / BASE_DAY_KCAL;
+  document.getElementById('sl-val').textContent = v + ' kcal';
+  const fb = document.getElementById('sl-factor');
+  if(Math.abs(scaleFactor - 1) < 0.02) {
+    fb.textContent = 'bazowo';
+    fb.className = 'scaler-factor';
+  } else {
+    fb.textContent = '×' + scaleFactor.toFixed(2);
+    fb.className = scaleFactor > 1 ? 'scaler-factor over' : 'scaler-factor';
+  }
+  localStorage.setItem('respo-scale', v);
+  renderMeals();
+  renderPlanner();
+  if(document.getElementById('sec-shopping').classList.contains('active')) generateShopping();
+}
+
+function resetScaler() {
+  document.getElementById('sl-kcal').value = BASE_DAY_KCAL;
+  onScalerChange();
+  showToast('Przywrócono bazową kaloryczność.');
+}
+
+function scaledMacro(m) {
+  return {
+    kcal: Math.round(m.kcal * scaleFactor),
+    b: Math.round(m.b * scaleFactor),
+    t: Math.round(m.t * scaleFactor),
+    w: Math.round(m.w * scaleFactor)
+  };
+}
+
+const DISCRETE_UNITS = /sztuk[ai]?|szt\.?|opakow|opak\.?|plaster|plast\.?|kostk[ai]|kromk[ai]|kromek|garść|garście|garści|ząbk[ói]|bagiet/i;
+const STEP_HALF = /łyżk[ai]|łyżek|łyżeczk[ai]|łyżeczek|szklank[ai]|szklanek/i;
+const PINCH = /szczyp/i;
+
+function parseIngredient(raw) {
+  const parts = raw.split('–');
+  const name = parts[0].trim();
+  const amtStr = (parts[1] || '').trim();
+  if(!amtStr) return {name, amtStr:'', grams:null, discrete:null, step:null, pinch:false};
+
+  const gMatch = amtStr.match(/([\d.,]+)\s*g\b/);
+  const grams = gMatch ? parseFloat(gMatch[1].replace(',','.')) : null;
+
+  if(PINCH.test(amtStr)) {
+    const n = parseFloat((amtStr.match(/^([\d.,]+)/)||[0,'1'])[1].replace(',','.')) || 1;
+    return {name, amtStr, grams, discrete:null, step:null, pinch:true, pinchCount:n};
+  }
+
+  const discMatch = amtStr.match(/([\d.,]+)\s*(sztuk[ai]?|szt\.?|opakow\w*|opak\.?|plaster\w*|plast\.?|kostk[ai]|kromk[ai]|kromek|garść\w*|ząbk[ói]\w*|bagiet\w*)/i);
+  if(discMatch) {
+    return {name, amtStr, grams,
+      discrete: parseFloat(discMatch[1].replace(',','.')),
+      discreteUnit: normalizeUnit(discMatch[2].toLowerCase()),
+      step: 1, pinch:false};
+  }
+
+  const stepMatch = amtStr.match(/([\d.,]+)\s*(łyżk[ai]|łyżek|łyżeczk[ai]|łyżeczek|szklank[ai]|szklanek)/i);
+  if(stepMatch) {
+    return {name, amtStr, grams,
+      discrete: parseFloat(stepMatch[1].replace(',','.')),
+      discreteUnit: normalizeUnit(stepMatch[2].toLowerCase()),
+      step: 0.5, pinch:false};
+  }
+
+  return {name, amtStr, grams, discrete:null, step:null, pinch:false};
+}
+
+function scaleIngredients(ingredients, factor) {
+  if(Math.abs(factor - 1) < 0.01) return ingredients.map(raw=>({raw, scaled:raw.split('–')[1]||''}));
+
+  const parsed = ingredients.map(parseIngredient);
+
+  const KCAL_DENSITY = {
+    'jajko':70,'mięso':165,'kurczak':165,'indyk':157,'wołowin':200,'wieprz':215,
+    'polędwic':143,'oliwa':884,'olej':884,'masło':717,'ser':350,'twaróg':160,
+    'jogurt':60,'mleko':42,'ryż':360,'kasza':340,'płatki':370,'makaron':350,
+    'chleb':220,'bułka':260,'tortilla':300,'mąka':350
+  };
+
+  function kcalDensity(name) {
+    const lc = name.toLowerCase();
+    for(const [k,v] of Object.entries(KCAL_DENSITY)) if(lc.includes(k)) return v/100;
+    return 1.5;
+  }
+
+  const continuous = parsed.filter(p => p.grams && !p.discrete && !p.pinch);
+  const discrete   = parsed.filter(p => p.discrete !== null);
+  const pinches    = parsed.filter(p => p.pinch);
+  const noUnit     = parsed.filter(p => !p.grams && !p.discrete && !p.pinch);
+
+  const scaledDisc = discrete.map(p => {
+    const raw = p.discrete * factor;
+    const rounded = Math.round(raw / p.step) * p.step;
+    const final = Math.max(p.step, rounded);
+    const gramsFinal = p.grams ? Math.round(p.grams * (final / p.discrete)) : null;
+    return {...p, scaledDisc: final, scaledGrams: gramsFinal,
+      discError: p.grams ? (final - p.discrete) / p.discrete * p.grams : 0};
+  });
+
+  const totalDiscGramsError = scaledDisc.reduce((s,p) => {
+    if(!p.grams) return s;
+    const expectedG = p.grams * factor;
+    return s + (p.scaledGrams - expectedG);
+  }, 0);
+
+  const totalContGrams = continuous.reduce((s,p) => s + p.grams, 0);
+  const scaledCont = continuous.map(p => {
+    const base = p.grams * factor;
+    const correction = totalContGrams > 0 ? (-totalDiscGramsError * (p.grams / totalContGrams)) * kcalDensity(p.name) / kcalDensity(p.name) : 0;
+    const final = Math.max(1, Math.round(base + correction));
+    return {...p, scaledGrams: final};
+  });
+
+  const scaledPinch = pinches.map(p => {
+    const raw = (p.pinchCount||1) * factor;
+    const final = Math.max(1, Math.round(raw));
+    return {...p, scaledPinch: final};
+  });
+
+  function formatScaled(p) {
+    const orig = p.raw;
+    const name = p.name;
+    if(p.pinch) {
+      const n = p.scaledPinch || 1;
+      const u = orig.includes('szczypta') ? (n===1?'szczypta':'szczypty') : 'szczypty';
+      return n === 1 ? `1 ${u}` : `${n} ${u}`;
+    }
+    if(p.discrete !== null) {
+      const sd = scaledDisc.find(x=>x.name===p.name&&x.amtStr===p.amtStr);
+      if(!sd) return p.amtStr;
+      const val = sd.scaledDisc % 1 === 0 ? sd.scaledDisc : sd.scaledDisc.toFixed(1);
+      const u = sd.discreteUnit;
+      if(sd.scaledGrams) return `${val} ${u} (${sd.scaledGrams} g)`;
+      return `${val} ${u}`;
+    }
+    if(p.grams) {
+      const sc = scaledCont.find(x=>x.name===p.name&&x.amtStr===p.amtStr);
+      if(!sc) return p.amtStr;
+      return `${sc.scaledGrams} g`;
+    }
+    return p.amtStr;
+  }
+
+  return parsed.map(p => ({raw: p.raw, scaled: formatScaled(p)}));
+}
+
+function renderMeals() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const ft = document.getElementById('filter-type').value;
+  const list = MEALS.filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!ft||m.type===ft));
+  const grid = document.getElementById('meal-grid');
+  if(!list.length) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#a09890">Brak wyników</div>'; return; }
+  grid.innerHTML = list.map(m=>{
+    const sm = scaledMacro(m);
+    const changed = Math.abs(scaleFactor-1) > 0.01;
+    return `<div class="meal-card" onclick="openMeal(${m.id})">
+      <span class="badge ${badgeClass(m.type)}">${badgeLabel(m.type)}</span>
+      <div class="meal-name">${m.name}</div>
+      <div class="macros">
+        <span class="macro"><strong>${sm.kcal}</strong> kcal${changed?`<span style="font-size:10px;color:var(--text3);margin-left:3px">(baz.${m.kcal})</span>`:''}</span>
+        <span class="macro">B <strong>${sm.b}g</strong></span>
+        <span class="macro">T <strong>${sm.t}g</strong></span>
+        <span class="macro">W <strong>${sm.w}g</strong></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openMeal(id) {
+  const m = MEALS.find(x=>x.id===id);
+  const sm = scaledMacro(m);
+  const changed = Math.abs(scaleFactor-1) > 0.01;
+  const dayOpts = DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
+  const slotOpts = SLOT_NAMES.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+  const scaledIngs = scaleIngredients(m.ingredients, scaleFactor);
+  document.getElementById('modal-inner').innerHTML = `
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">×</button>
+    <span class="badge ${badgeClass(m.type)}">${badgeLabel(m.type)}</span>
+    <h2>${m.name}</h2>
+    <div class="macros" style="margin-bottom:1.25rem">
+      <span class="macro"><strong>${sm.kcal}</strong> kcal${changed?` <span style="font-size:11px;color:var(--text3)">(baz. ${m.kcal})</span>`:''}</span>
+      <span class="macro">Białko <strong>${sm.b}g</strong></span>
+      <span class="macro">Tłuszcz <strong>${sm.t}g</strong></span>
+      <span class="macro">Węglowodany <strong>${sm.w}g</strong></span>
+    </div>
+    ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień</strong> (współczynnik ×${scaleFactor.toFixed(2)})</div>`:''}
+    <div class="section-lbl">Składniki</div>
+    <ul class="ing-list">${scaledIngs.map(s=>`<li>${s.raw.split('–')[0].trim()} – ${s.scaled}</li>`).join('')}</ul>
+    <div class="section-lbl">Sposób przygotowania</div>
+    <ol class="steps-list">${m.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+    <div class="add-row">
+      <label>Dodaj do planera:</label>
+      <select id="ap-day">${dayOpts}</select>
+      <select id="ap-slot">${slotOpts}</select>
+      <button class="btn btn-primary" onclick="addToPlan(${m.id})">Dodaj</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function addToPlan(mId) {
+  const day = parseInt(document.getElementById('ap-day').value);
+  const slot = parseInt(document.getElementById('ap-slot').value);
+  plan[day+'_'+slot] = mId;
+  savePlan();
+  document.getElementById('modal').classList.remove('open');
+  showToast('Dodano do planera!');
+  renderPlanner();
+}
+
+function closeModal(e) { if(e.target===document.getElementById('modal')) e.target.classList.remove('open'); }
+function closeModal2(e) { if(e.target===document.getElementById('modal2')) e.target.classList.remove('open'); }
+
+let _pendingSlot = null;
+function openAddSlot(day, slot) {
+  _pendingSlot = {day, slot};
+  const type = SLOT_TYPES[slot];
+  const list = MEALS.filter(m=>m.type===type);
+  document.getElementById('modal2-inner').innerHTML = `
+    <button class="modal-close" onclick="document.getElementById('modal2').classList.remove('open')">×</button>
+    <h2>Wybierz ${SLOT_NAMES[slot]}<br><small style="font-size:14px;font-weight:400;color:#6b6560">${DAYS[day]}</small></h2>
+    <input class="search-mini" type="text" placeholder="Szukaj..." oninput="filterSlotMeals(this.value,'${type}')">
+    <div class="meal-select-grid" id="slot-meal-list">
+      ${list.map(m=>{const sm=scaledMacro(m);return`<div class="meal-option" onclick="confirmSlot(${m.id})">
+        <span class="mname">${m.name}</span>
+        <span class="mkcal">${sm.kcal} kcal</span>
+      </div>`}).join('')}
+    </div>`;
+  document.getElementById('modal2').classList.add('open');
+}
+
+function filterSlotMeals(q, type) {
+  const list = MEALS.filter(m=>m.type===type&&(!q||m.name.toLowerCase().includes(q.toLowerCase())));
+  document.getElementById('slot-meal-list').innerHTML = list.map(m=>{
+    const sm=scaledMacro(m);
+    return`<div class="meal-option" onclick="confirmSlot(${m.id})">
+      <span class="mname">${m.name}</span>
+      <span class="mkcal">${sm.kcal} kcal</span>
+    </div>`;
+  }).join('');
+}
+
+function confirmSlot(mId) {
+  if(!_pendingSlot) return;
+  plan[_pendingSlot.day+'_'+_pendingSlot.slot] = mId;
+  savePlan();
+  document.getElementById('modal2').classList.remove('open');
+  showToast('Dodano do planera!');
+  renderPlanner();
+}
+
+function removeSlot(key, e) {
+  e.stopPropagation();
+  delete plan[key];
+  savePlan();
+  renderPlanner();
+}
+
+function clearPlan() {
+  if(!confirm('Wyczyścić cały planer tygodnia?')) return;
+  plan = {};
+  savePlan();
+  renderPlanner();
+}
+
+function copyPrevDay(di) {
+  if(di === 0) return;
+  const prevHas = [0,1,2].some(si => plan[(di-1)+'_'+si]);
+  if(!prevHas) { showToast('Poprzedni dzień jest pusty.'); return; }
+  const thisHas = [0,1,2].some(si => plan[di+'_'+si]);
+  if(thisHas && !confirm(`Zastąpić obecne posiłki w ${DAYS[di]} posiłkami z ${DAYS[di-1]}?`)) return;
+  [0,1,2].forEach(si=>{
+    const prevKey = (di-1)+'_'+si;
+    const thisKey = di+'_'+si;
+    if(plan[prevKey]) plan[thisKey] = plan[prevKey];
+    else delete plan[thisKey];
+  });
+  savePlan();
+  renderPlanner();
+  showToast(`Skopiowano posiłki z ${DAYS_SHORT[di-1]} do ${DAYS_SHORT[di]}!`);
+}
+
+function renderPlanner() {
+  renderWeekStats();
+  const grid = document.getElementById('planner-grid');
+  grid.innerHTML = DAYS.map((d,di)=>{
+    const slots = [0,1,2].map(si=>{
+      const key = di+'_'+si;
+      const m = MEALS.find(x=>x.id===plan[key]);
+      if(m) {
+        const sm = scaledMacro(m);
+        return `<div class="plan-slot filled">
+          <button class="slot-rm" onclick="removeSlot('${key}',event)" title="Usuń">×</button>
+          <div class="slot-type">${SLOT_NAMES[si]}</div>
+          <div class="slot-name">${m.name}</div>
+          <div class="slot-kcal">${sm.kcal} kcal · B${sm.b} T${sm.t} W${sm.w}</div>
+        </div>`;
+      }
+      return `<div class="plan-slot empty" onclick="openAddSlot(${di},${si})">+ ${SLOT_NAMES[si]}</div>`;
+    }).join('');
+    const total = [0,1,2].reduce((s,si)=>{
+      const m=MEALS.find(x=>x.id===plan[di+'_'+si]);
+      return s+(m?Math.round(m.kcal*scaleFactor):0);
+    },0);
+    const prevHasMeals = di > 0 && [0,1,2].some(si => plan[(di-1)+'_'+si]);
+    const copyBtn = prevHasMeals
+      ? `<button class="day-copy-btn" onclick="copyPrevDay(${di})">↩ kopiuj z ${DAYS_SHORT[di-1]}</button>`
+      : '';
+    return `<div class="plan-day">
+      <div class="plan-day-lbl">${DAYS_SHORT[di]}</div>
+      ${slots}
+      ${total>0?`<div class="day-total">${total} kcal</div>`:''}
+      ${copyBtn}
+    </div>`;
+  }).join('');
+}
+
+function renderWeekStats() {
+  let kcal=0,b=0,t=0,w=0,count=0;
+  for(let d=0;d<7;d++) for(let s=0;s<3;s++){
+    const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
+    if(m){kcal+=Math.round(m.kcal*scaleFactor);b+=Math.round(m.b*scaleFactor);t+=Math.round(m.t*scaleFactor);w+=Math.round(m.w*scaleFactor);count++;}
+  }
+  document.getElementById('week-stats').innerHTML=`
+    <div class="wstat"><div class="wstat-val">${count}</div><div class="wstat-lbl">Posiłków</div></div>
+    <div class="wstat"><div class="wstat-val">${kcal}</div><div class="wstat-lbl">Łączne kcal</div></div>
+    <div class="wstat"><div class="wstat-val">${b}g</div><div class="wstat-lbl">Białko</div></div>
+    <div class="wstat"><div class="wstat-val">${t}g</div><div class="wstat-lbl">Tłuszcz</div></div>
+    <div class="wstat"><div class="wstat-val">${w}g</div><div class="wstat-lbl">Węglowodany</div></div>`;
+  document.getElementById('hs-meals').textContent = count;
+  document.getElementById('hs-kcal').textContent = kcal;
+}
+
+function updateHeaderStats() {
+  let kcal=0,count=0;
+  for(let d=0;d<7;d++) for(let s=0;s<3;s++){
+    const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
+    if(m){kcal+=Math.round(m.kcal*scaleFactor);count++;}
+  }
+  document.getElementById('hs-meals').textContent=count;
+  document.getElementById('hs-kcal').textContent=kcal;
+}
+
+function generateShopping() {
+  const ingMap = buildIngMap();
+  const items = Object.values(ingMap);
+  if(!items.length) {
+    document.getElementById('shopping-content').innerHTML='<div class="empty-state"><div class="big">Brak planu</div>Wypełnij planer tygodniowy, aby wygenerować listę zakupów.</div>';
+    return;
+  }
+  const CATS = getPrintCats(ingMap);
+  const changed = Math.abs(scaleFactor-1) > 0.01;
+  const banner = changed
+    ? `<div style="background:var(--green-light);color:var(--green);padding:10px 14px;border-radius:var(--radius);margin-bottom:1rem;font-size:13px">Ilości przeliczone dla <strong>${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień</strong> (×${scaleFactor.toFixed(2)})</div>`
+    : '';
+  const html = CATS.filter(c=>c.items.length).map(c=>`
+    <div class="shop-cat-card">
+      <div class="shop-cat-title"><span class="shop-cat-icon">${CAT_ICONS[c.name]||'📦'}</span>${c.name}</div>
+      ${c.items.map(item=>{
+        const k=item.name.toLowerCase();
+        const done=checked[k]||false;
+        return `<div class="shop-item${done?' done':''}" id="si-${k.replace(/[^a-z0-9]/g,'_')}">
+          <input type="checkbox" ${done?'checked':''} onchange="toggleCheck('${k}',this)">
+          <span>${item.name}<span class="shop-amt">${item.amounts.join(' · ')}</span></span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  document.getElementById('shopping-content').innerHTML = banner + '<div class="shop-layout">'+html+'</div>';
+}
+
+function toggleCheck(key, el) {
+  checked[key]=el.checked;
+  saveChecked();
+  const safe=key.replace(/[^a-z0-9]/g,'_');
+  const row=document.getElementById('si-'+safe);
+  if(row) row.classList.toggle('done',el.checked);
+}
+
+function clearChecked() { checked={}; saveChecked(); generateShopping(); }
+
+function printFull() {
+  const el = document.getElementById('shopping-content');
+  if(!el || !el.innerHTML.trim()) { alert('Najpierw wygeneruj listę zakupów.'); return; }
+  const win = window.open('','_blank','width=900,height=700');
+  const scalerNote = Math.abs(scaleFactor-1)>0.01 ? ` · Skalowanie: ×${scaleFactor.toFixed(2)} (${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień)` : '';
+  win.document.write(`<!DOCTYPE html><html lang="pl"><head>
+  <meta charset="UTF-8">
+  <title>Lista zakupów – KrzempiK</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1714;padding:2rem;background:#fff}
+    h1{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px;color:#1a1714}
+    .meta{font-size:12px;color:#888;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid #ddd}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .cat{break-inside:avoid;border:1px solid #ddd;border-radius:8px;padding:10px 12px}
+    .cat-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#2d6a4f;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee}
+    .item{display:flex;align-items:baseline;gap:6px;padding:4px 0;font-size:12.5px;border-bottom:1px solid #f0f0f0}
+    .item:last-child{border-bottom:none}
+    .item::before{content:"☐";font-size:13px;flex-shrink:0;color:#aaa}
+    .amt{color:#999;font-size:11px}
+    @media print{body{padding:1rem}.grid{grid-template-columns:repeat(3,1fr)}.cat{break-inside:avoid}}
+  </style></head><body>
+  <h1>Lista zakupów</h1>
+  <div class="meta">KrzempiK — ${new Date().toLocaleDateString('pl-PL',{day:'2-digit',month:'long',year:'numeric'})}${scalerNote}</div>
+  <div class="grid">${buildPrintData()}</div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function printSimple() {
+  const el = document.getElementById('shopping-content');
+  if(!el || !el.innerHTML.trim()) { alert('Najpierw wygeneruj listę zakupów.'); return; }
+  const win = window.open('','_blank','width=700,height=700');
+  const scalerNote = Math.abs(scaleFactor-1)>0.01 ? ` · ×${scaleFactor.toFixed(2)} (${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień)` : '';
+  win.document.write(`<!DOCTYPE html><html lang="pl"><head>
+  <meta charset="UTF-8">
+  <title>Lista zakupów – prosta</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1714;padding:2rem;background:#fff;max-width:600px}
+    h1{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px}
+    .meta{font-size:12px;color:#888;margin-bottom:2rem;padding-bottom:1rem;border-bottom:2px solid #1a1714}
+    .cat-block{margin-bottom:1.5rem;break-inside:avoid}
+    .cat-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#2d6a4f;margin-bottom:8px}
+    .item{display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid #eee;font-size:13px}
+    .item:last-child{border-bottom:none}
+    .item::before{content:"☐";font-size:14px;color:#bbb;flex-shrink:0}
+    .amt{color:#999;font-size:11.5px}
+    @media print{body{padding:1rem;max-width:100%}.cat-block{break-inside:avoid}}
+  </style></head><body>
+  <h1>Lista zakupów</h1>
+  <div class="meta">KrzempiK · ${new Date().toLocaleDateString('pl-PL',{day:'2-digit',month:'long',year:'numeric'})}${scalerNote}</div>
+  ${buildSimplePrintData()}
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function buildPrintData() {
+  const ingMap = buildIngMap();
+  if(!ingMap) return '<p>Brak danych</p>';
+  const CATS = getPrintCats(ingMap);
+  return CATS.filter(c=>c.items.length).map(c=>`
+    <div class="cat">
+      <div class="cat-title">${c.name}</div>
+      ${c.items.map(i=>`<div class="item">${i.name} <span class="amt">${i.amounts.slice(0,2).join(', ')}</span></div>`).join('')}
+    </div>`).join('');
+}
+
+function buildSimplePrintData() {
+  const ingMap = buildIngMap();
+  if(!ingMap) return '<p>Brak danych</p>';
+  const CATS = getPrintCats(ingMap);
+  return CATS.filter(c=>c.items.length).map(c=>`
+    <div class="cat-block">
+      <div class="cat-title">${c.name}</div>
+      ${c.items.map(i=>`<div class="item">${i.name} <span class="amt">${i.amounts.slice(0,2).join(', ')}</span></div>`).join('')}
+    </div>`).join('');
+}
+
+function buildIngMap() {
+  const ingMap = {};
+  new Set(Object.values(plan)).forEach(mId=>{
+    const m=MEALS.find(x=>x.id===mId);
+    if(!m) return;
+    const scaled = scaleIngredients(m.ingredients, scaleFactor);
+    scaled.forEach(s=>{
+      const name = s.raw.split('–')[0].trim();
+      const amt = s.scaled;
+      const key = name.toLowerCase();
+      if(!ingMap[key]) ingMap[key]={name, grams:0, units:{}};
+      if(!amt) return;
+
+      const gMatch = amt.match(/([\d.,]+)\s*g\b/);
+      if(gMatch) ingMap[key].grams += parseFloat(gMatch[1].replace(',','.'));
+
+      const unitPatterns = [
+        /(\d[\d.,]*)\s*(sztuk[ai]?|szt\.?)/i,
+        /(\d[\d.,]*)\s*(opakow\w*|opak\.?)/i,
+        /(\d[\d.,]*)\s*(łyżk[ai]|łyżek)/i,
+        /(\d[\d.,]*)\s*(łyżeczk[ai]|łyżeczek)/i,
+        /(\d[\d.,]*)\s*(szklank[ai]|szklanek)/i,
+        /(\d[\d.,]*)\s*(plaster\w*|plast\.?)/i,
+        /(\d[\d.,]*)\s*(garść|garście|garści)/i,
+        /(\d[\d.,]*)\s*(kostk[ai])/i,
+        /(\d[\d.,]*)\s*(kromk[ai]|kromek)/i,
+        /(\d[\d.,]*)\s*(ząbk[ói]\w*)/i,
+        /(\d[\d.,]*)\s*(szczyp\w+)/i,
+      ];
+      for(const pat of unitPatterns){
+        const m2=amt.match(pat);
+        if(m2){
+          const count=parseFloat(m2[1].replace(',','.'));
+          const unit=normalizeUnit(m2[2].toLowerCase());
+          ingMap[key].units[unit] = (ingMap[key].units[unit]||0) + count;
+          break;
+        }
+      }
+    });
+  });
+
+  Object.values(ingMap).forEach(item=>{
+    item.amounts = [];
+    if(item.grams > 0) item.amounts.push(Math.round(item.grams)+' g');
+    for(const [unit, count] of Object.entries(item.units)){
+      const val = Number.isInteger(count) ? count : parseFloat(count.toFixed(1));
+      item.amounts.push(val+' '+unit);
+    }
+  });
+  return ingMap;
+}
+
+function normalizeUnit(u) {
+  if(/sztuk[ai]?|szt/.test(u)) return 'szt.';
+  if(/opakow|opak/.test(u)) return 'opak.';
+  if(/łyżeczk/.test(u)) return 'łyżeczki';
+  if(/łyżk[ai]|łyżek/.test(u)) return 'łyżki';
+  if(/szklank[ai]|szklanek/.test(u)) return 'szklanki';
+  if(/plaster/.test(u)) return 'plastry';
+  if(/garść|garście|garści/.test(u)) return 'garście';
+  if(/kostk/.test(u)) return 'kostki';
+  if(/kromk|kromek/.test(u)) return 'kromki';
+  if(/ząb/.test(u)) return 'ząbki';
+  if(/szczyp/.test(u)) return 'szczypty';
+  return u;
+}
+
+function getPrintCats(ingMap) {
+  const CATS_DEF = [
+    {name:'Nabiał i jajka',kw:['jajko','jogurt','serek','ser ','mleko','maślanka','skyr','twaróg','mozzarella','feta','gouda','masło e','śmietanka','burrata']},
+    {name:'Mięso i wędliny',kw:['kurczak','indyk','wołow','wieprz','polędwic','szynka','mięso','mielone','parmeńska']},
+    {name:'Warzywa i owoce',kw:['pomidor','papryka','ogórek','cebula','czosnek','rzodkiewka','marchew','brokuł','ziemniak','batat','bakłażan','jarmuż','rukola','sałat','szpinak','pieczark','banan','jabłko','truskawk','maliny','borówki','limonka','cytryna','ananas','pomarańcza','daktyl']},
+    {name:'Pieczywo i makarony',kw:['chleb','bułka','tortilla','makaron','placek','pinsa','piadina','grahamka']},
+    {name:'Kasze i ryż',kw:['ryż','kasza','płatki','mąka','nesquik']},
+    {name:'Puszki i słoiki',kw:['puszki','passata','fasola','kukurydza','oliwki','barbecue','sojowy','ketchup','majonez']},
+    {name:'Orzechy i tłuszcze',kw:['oliwa','olej rze','masło orzech','orzechy','migdały','pestki','nasiona','sezam','chia','wiórki']},
+    {name:'Przyprawy i inne',kw:[]}
+  ];
+  const items = Object.values(ingMap);
+  const result = CATS_DEF.map(c=>({name:c.name,kw:c.kw,items:[]}));
+  items.forEach(item=>{
+    const lc=item.name.toLowerCase();
+    let placed=false;
+    for(const c of result){
+      if(c.kw.some(k=>lc.includes(k))){c.items.push(item);placed=true;break;}
+    }
+    if(!placed) result[result.length-1].items.push(item);
+  });
+  return result;
+}
+
+const savedScale = localStorage.getItem('respo-scale');
+if(savedScale) {
+  document.getElementById('sl-kcal').value = savedScale;
+  scaleFactor = parseInt(savedScale) / BASE_DAY_KCAL;
+  document.getElementById('sl-val').textContent = savedScale + ' kcal';
+  if(Math.abs(scaleFactor-1) > 0.02) {
+    const fb = document.getElementById('sl-factor');
+    fb.textContent = '×' + scaleFactor.toFixed(2);
+    fb.className = scaleFactor > 1 ? 'scaler-factor over' : 'scaler-factor';
+  }
+}
+
+renderMeals();
+updateHeaderStats();
+</script>
+</body>
+</html>
