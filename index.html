@@ -1092,82 +1092,62 @@ function parseIngredient(raw) {
 }
 
 function scaleIngredients(ingredients, factor) {
-  if(Math.abs(factor - 1) < 0.01) return ingredients.map(raw=>({raw, scaled:raw.split('–')[1]||''}));
+  return ingredients.map(raw => {
+    const dashIdx = raw.indexOf('–');
+    const name = dashIdx >= 0 ? raw.slice(0, dashIdx).trim() : raw.trim();
+    const amtStr = dashIdx >= 0 ? raw.slice(dashIdx + 1).trim() : '';
 
-  const parsed = ingredients.map(parseIngredient);
+    if(!amtStr || Math.abs(factor - 1) < 0.01) {
+      return {raw, name, scaled: amtStr};
+    }
 
-  const KCAL_DENSITY = {
-    'jajko':70,'mięso':165,'kurczak':165,'indyk':157,'wołowin':200,'wieprz':215,
-    'polędwic':143,'oliwa':884,'olej':884,'masło':717,'ser':350,'twaróg':160,
-    'jogurt':60,'mleko':42,'ryż':360,'kasza':340,'płatki':370,'makaron':350,
-    'chleb':220,'bułka':260,'tortilla':300,'mąka':350
-  };
+    try {
+      const scaled = scaleAmtStr(amtStr, factor);
+      return {raw, name, scaled};
+    } catch(e) {
+      return {raw, name, scaled: amtStr};
+    }
+  });
+}
 
-  function kcalDensity(name) {
-    const lc = name.toLowerCase();
-    for(const [k,v] of Object.entries(KCAL_DENSITY)) if(lc.includes(k)) return v/100;
-    return 1.5;
+function scaleAmtStr(amtStr, factor) {
+  if(PINCH.test(amtStr)) {
+    const n = parseFloat((amtStr.match(/^([\d.,]+)/)||['','1'])[1].replace(',','.')) || 1;
+    const scaled = Math.max(1, Math.round(n * factor));
+    const u = scaled === 1 ? 'szczypta' : 'szczypty';
+    return `${scaled} ${u}`;
   }
 
-  const continuous = parsed.filter(p => p.grams && !p.discrete && !p.pinch);
-  const discrete   = parsed.filter(p => p.discrete !== null);
-  const pinches    = parsed.filter(p => p.pinch);
-  const noUnit     = parsed.filter(p => !p.grams && !p.discrete && !p.pinch);
-
-  const scaledDisc = discrete.map(p => {
-    const raw = p.discrete * factor;
-    const rounded = Math.round(raw / p.step) * p.step;
-    const final = Math.max(p.step, rounded);
-    const gramsFinal = p.grams ? Math.round(p.grams * (final / p.discrete)) : null;
-    return {...p, scaledDisc: final, scaledGrams: gramsFinal,
-      discError: p.grams ? (final - p.discrete) / p.discrete * p.grams : 0};
-  });
-
-  const totalDiscGramsError = scaledDisc.reduce((s,p) => {
-    if(!p.grams) return s;
-    const expectedG = p.grams * factor;
-    return s + (p.scaledGrams - expectedG);
-  }, 0);
-
-  const totalContGrams = continuous.reduce((s,p) => s + p.grams, 0);
-  const scaledCont = continuous.map(p => {
-    const base = p.grams * factor;
-    const correction = totalContGrams > 0 ? (-totalDiscGramsError * (p.grams / totalContGrams)) * kcalDensity(p.name) / kcalDensity(p.name) : 0;
-    const final = Math.max(1, Math.round(base + correction));
-    return {...p, scaledGrams: final};
-  });
-
-  const scaledPinch = pinches.map(p => {
-    const raw = (p.pinchCount||1) * factor;
-    const final = Math.max(1, Math.round(raw));
-    return {...p, scaledPinch: final};
-  });
-
-  function formatScaled(p) {
-    const orig = p.raw;
-    const name = p.name;
-    if(p.pinch) {
-      const n = p.scaledPinch || 1;
-      const u = orig.includes('szczypta') ? (n===1?'szczypta':'szczypty') : 'szczypty';
-      return n === 1 ? `1 ${u}` : `${n} ${u}`;
-    }
-    if(p.discrete !== null) {
-      const sd = scaledDisc.find(x=>x.name===p.name&&x.amtStr===p.amtStr);
-      if(!sd) return p.amtStr;
-      const val = sd.scaledDisc % 1 === 0 ? sd.scaledDisc : sd.scaledDisc.toFixed(1);
-      const u = sd.discreteUnit;
-      if(sd.scaledGrams) return `${val} ${u} (${sd.scaledGrams} g)`;
-      return `${val} ${u}`;
-    }
-    if(p.grams) {
-      const sc = scaledCont.find(x=>x.name===p.name&&x.amtStr===p.amtStr);
-      if(!sc) return p.amtStr;
-      return `${sc.scaledGrams} g`;
-    }
-    return p.amtStr;
+  const discMatch = amtStr.match(/^([\d.,]+)\s*(sztuk[ai]?|szt\.?|opakow\w*|opak\.?|plaster\w*|plast\.?|kostk[ai]|kromk[ai]|kromek|garść\w*|ząbk[ói]\w*|bagiet\w*|półbagiet\w*)/i);
+  if(discMatch) {
+    const origCount = parseFloat(discMatch[1].replace(',','.'));
+    const unit = discMatch[2];
+    const scaled = Math.max(1, Math.round(origCount * factor));
+    const gMatch = amtStr.match(/([\d.,]+)\s*g\b/);
+    const gStr = gMatch ? ` (${Math.round(parseFloat(gMatch[1].replace(',','.'))*factor)} g)` : '';
+    return `${scaled} ${unit}${gStr}`;
   }
 
-  return parsed.map(p => ({raw: p.raw, scaled: formatScaled(p)}));
+  const stepMatch = amtStr.match(/^([\d.,]+)\s*(łyżk[ai]|łyżek|łyżeczk[ai]|łyżeczek|szklank[ai]|szklanek)/i);
+  if(stepMatch) {
+    const origCount = parseFloat(stepMatch[1].replace(',','.'));
+    const unit = stepMatch[2];
+    const raw = origCount * factor;
+    const scaled = Math.max(0.5, Math.round(raw * 2) / 2);
+    const gMatch = amtStr.match(/([\d.,]+)\s*g\b/);
+    const gStr = gMatch ? ` (${Math.round(parseFloat(gMatch[1].replace(',','.'))*factor)} g)` : '';
+    const valStr = scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1);
+    return `${valStr} ${unit}${gStr}`;
+  }
+
+  const gMatch = amtStr.match(/([\d.,]+)\s*g\b/);
+  if(gMatch) {
+    const origG = parseFloat(gMatch[1].replace(',','.'));
+    const scaledG = Math.max(1, Math.round(origG * factor));
+    return amtStr.replace(gMatch[0], `${scaledG} g`);
+  }
+
+  return amtStr;
 }
 
 function renderMeals() {
@@ -1211,7 +1191,7 @@ function openMeal(id) {
     </div>
     ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień</strong> (współczynnik ×${scaleFactor.toFixed(2)})</div>`:''}
     <div class="section-lbl">Składniki</div>
-    <ul class="ing-list">${scaledIngs.map(s=>`<li>${s.raw.split('–')[0].trim()} – ${s.scaled}</li>`).join('')}</ul>
+    <ul class="ing-list">${scaledIngs.map(s=>`<li>${s.name}${s.scaled?' – '+s.scaled:''}</li>`).join('')}</ul>
     <div class="section-lbl">Sposób przygotowania</div>
     <ol class="steps-list">${m.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
     <div class="add-row">
@@ -1594,3 +1574,4 @@ updateHeaderStats();
 </script>
 </body>
 </html>
+
