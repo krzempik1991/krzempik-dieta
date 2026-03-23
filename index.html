@@ -1468,12 +1468,12 @@ function buildSimplePrintData() {
 
 function buildIngMap() {
   const ingMap = {};
-  new Set(Object.values(plan)).forEach(mId=>{
+  Object.values(plan).forEach(mId=>{
     const m=MEALS.find(x=>x.id===mId);
     if(!m) return;
     const scaled = scaleIngredients(m.ingredients, scaleFactor);
     scaled.forEach(s=>{
-      const name = s.raw.split('–')[0].trim();
+      const name = s.name || s.raw.split('–')[0].trim();
       const amt = s.scaled;
       const key = name.toLowerCase();
       if(!ingMap[key]) ingMap[key]={name, grams:0, units:{}};
