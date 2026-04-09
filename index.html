@@ -25,10 +25,87 @@
   --amber-light: #fef3c7;
   --rose: #9f1239;
   --rose-light: #fce7f3;
+  --purple: #5b21b6;
+  --purple-light: #ede9fe;
   --accent: #2d6a4f;
   --radius: 12px;
   --radius-lg: 18px;
 }
+
+/* DARK MODE */
+[data-theme="dark"] {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #232323;
+  --border: #2e2e2e;
+  --text: #f0ede8;
+  --text2: #a09890;
+  --text3: #6b6560;
+  --green: #52b788;
+  --green-light: #1a2e22;
+  --green-mid: #2d5a3f;
+  --amber: #fbbf24;
+  --amber-light: #292000;
+  --rose: #fb7185;
+  --rose-light: #2a0a14;
+  --purple: #a78bfa;
+  --purple-light: #1e1040;
+  --accent: #52b788;
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--border); color: var(--text); }
+
+/* TOGGLE SWITCH */
+.scaler-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+.p4-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.toggle-switch {
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle-switch.on { background: var(--green); }
+.toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch.on .toggle-knob { transform: translateX(18px); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'DM Sans', sans-serif;
@@ -186,6 +263,49 @@ body {
 .badge-s { background: var(--amber-light); color: var(--amber); }
 .badge-d { background: var(--green-light); color: var(--green); }
 .badge-k { background: var(--rose-light); color: var(--rose); }
+.badge-p { background: var(--purple-light); color: var(--purple); }
+
+/* FAVORITES */
+.meal-card { position: relative; }
+.fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 50%;
+  color: var(--text3);
+  transition: transform 0.15s;
+  z-index: 2;
+}
+.fav-btn:hover { transform: scale(1.2); }
+.fav-btn.active { color: #f59e0b; }
+#fav-filter-btn.active { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+
+/* DAILY MACRO BAR */
+.day-macro-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin-top: 4px;
+  overflow: hidden;
+}
+.day-macro-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--green);
+  transition: width 0.3s;
+}
+.day-macro-bar-fill.over { background: var(--rose); }
+
+/* P4 slot style in planner */
+.plan-slot.p4 { border-color: var(--purple-light); }
+.plan-slot.p4.filled { background: var(--purple-light); }
+.slot-type.p4-label { color: var(--purple); }
 .meal-name {
   font-family: 'DM Serif Display', serif;
   font-size: 16px;
@@ -782,6 +902,7 @@ body {
     <button class="nav-btn" onclick="switchTab('shopping')">Lista zakupów</button>
   </nav>
   <div class="header-stats">
+    <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Tryb ciemny / jasny">🌙</button>
     <div class="hstat">
       <div class="hstat-val" id="hs-meals">0</div>
       <div class="hstat-lbl">Posiłków w planie</div>
@@ -801,6 +922,13 @@ body {
   <span class="scaler-factor" id="sl-factor">bazowo</span>
   <button class="scaler-reset" onclick="resetScaler()">Reset</button>
   <span class="scaler-info" id="sl-info">Baza: ~2300 kcal/dzień</span>
+  <div class="scaler-sep"></div>
+  <label class="p4-toggle-label">
+    <span>4 posiłki</span>
+    <div class="toggle-switch" id="p4-toggle" onclick="toggleP4Mode()" title="Włącz/wyłącz Posiłek 4 (przekąska)">
+      <div class="toggle-knob"></div>
+    </div>
+  </label>
 </div>
 
 <main class="main">
@@ -811,10 +939,12 @@ body {
       <input type="text" id="search" placeholder="Szukaj dania..." oninput="renderMeals()">
       <select id="filter-type" onchange="renderMeals()">
         <option value="">Wszystkie posiłki</option>
-        <option value="śniadanie">Śniadanie (Posiłek 1)</option>
-        <option value="obiad">Obiad (Posiłek 2)</option>
-        <option value="kolacja">Kolacja (Posiłek 3)</option>
+        <option value="śniadanie">Śniadanie (P1)</option>
+        <option value="obiad">Obiad (P2)</option>
+        <option value="kolacja">Kolacja (P3)</option>
+        <option value="przekąska">Przekąska (P4)</option>
       </select>
+      <button class="btn btn-sm" id="fav-filter-btn" onclick="toggleFavFilter()" title="Pokaż ulubione">⭐ Ulubione</button>
     </div>
     <div class="meal-grid" id="meal-grid"></div>
   </div>
@@ -988,8 +1118,8 @@ const MEALS = [
 
 const DAYS = ['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
 const DAYS_SHORT = ['Pon','Wt','Śr','Czw','Pt','Sob','Nd'];
-const SLOT_NAMES = ['Śniadanie','Obiad','Kolacja'];
-const SLOT_TYPES = ['śniadanie','obiad','kolacja'];
+const SLOT_NAMES = ['Śniadanie','Obiad','Kolacja','Przekąska P4'];
+const SLOT_TYPES = ['śniadanie','obiad','kolacja','przekąska'];
 const CAT_ICONS = {'Nabiał i jajka':'🥚','Mięso i wędliny':'🍗','Warzywa i owoce':'🥦','Pieczywo i makarony':'🍞','Kasze i ryż':'🌾','Puszki i słoiki':'🥫','Orzechy i tłuszcze':'🥑','Przyprawy i inne':'🧂'};
 
 let plan = JSON.parse(localStorage.getItem('respo-plan')||'{}');
@@ -1015,8 +1145,61 @@ function switchTab(name) {
   if(name==='shopping') generateShopping();
 }
 
-function badgeClass(t) { return t==='śniadanie'?'badge-s':t==='obiad'?'badge-d':'badge-k'; }
-function badgeLabel(t) { return t==='śniadanie'?'Śniadanie · P1':t==='obiad'?'Obiad · P2':'Kolacja · P3'; }
+function badgeClass(t) {
+  if(t==='śniadanie') return 'badge-s';
+  if(t==='obiad') return 'badge-d';
+  if(t==='przekąska') return 'badge-p';
+  return 'badge-k';
+}
+function badgeLabel(t) {
+  if(t==='śniadanie') return 'Śniadanie · P1';
+  if(t==='obiad') return 'Obiad · P2';
+  if(t==='przekąska') return 'Przekąska · P4';
+  return 'Kolacja · P3';
+}
+
+// ── STATE ──
+let p4Mode = JSON.parse(localStorage.getItem('respo-p4')||'false');
+let favorites = JSON.parse(localStorage.getItem('respo-favs')||'[]');
+let showFavsOnly = false;
+
+function saveFavs() { localStorage.setItem('respo-favs', JSON.stringify(favorites)); }
+function isFav(id) { return favorites.includes(id); }
+function toggleFav(id, e) {
+  e.stopPropagation();
+  if(isFav(id)) favorites = favorites.filter(x=>x!==id);
+  else favorites.push(id);
+  saveFavs();
+  renderMeals();
+}
+function toggleFavFilter() {
+  showFavsOnly = !showFavsOnly;
+  const btn = document.getElementById('fav-filter-btn');
+  btn.classList.toggle('active', showFavsOnly);
+  renderMeals();
+}
+
+function toggleP4Mode() {
+  p4Mode = !p4Mode;
+  localStorage.setItem('respo-p4', JSON.stringify(p4Mode));
+  const tog = document.getElementById('p4-toggle');
+  tog.classList.toggle('on', p4Mode);
+  // Update filter select
+  const sel = document.getElementById('filter-type');
+  const p4Opt = sel.querySelector('option[value="przekąska"]');
+  if(p4Opt) p4Opt.style.display = p4Mode ? '' : 'none';
+  renderMeals();
+  renderPlanner();
+}
+
+function initP4Toggle() {
+  const tog = document.getElementById('p4-toggle');
+  if(tog) tog.classList.toggle('on', p4Mode);
+  // Hide P4 option in select if not in P4 mode
+  const sel = document.getElementById('filter-type');
+  const p4Opt = sel ? sel.querySelector('option[value="przekąska"]') : null;
+  if(p4Opt) p4Opt.style.display = p4Mode ? '' : 'none';
+}
 
 const BASE_DAY_KCAL = 2300;
 let scaleFactor = 1.0;
@@ -1153,13 +1336,21 @@ function scaleAmtStr(amtStr, factor) {
 function renderMeals() {
   const q = document.getElementById('search').value.toLowerCase();
   const ft = document.getElementById('filter-type').value;
-  const list = MEALS.filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!ft||m.type===ft));
+  let list = MEALS.filter(m => {
+    if(!p4Mode && m.type === 'przekąska') return false;
+    if(showFavsOnly && !isFav(m.id)) return false;
+    if(q && !m.name.toLowerCase().includes(q)) return false;
+    if(ft && m.type !== ft) return false;
+    return true;
+  });
   const grid = document.getElementById('meal-grid');
-  if(!list.length) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#a09890">Brak wyników</div>'; return; }
+  if(!list.length) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)">Brak wyników</div>'; return; }
   grid.innerHTML = list.map(m=>{
     const sm = scaledMacro(m);
     const changed = Math.abs(scaleFactor-1) > 0.01;
+    const fav = isFav(m.id);
     return `<div class="meal-card" onclick="openMeal(${m.id})">
+      <button class="fav-btn ${fav?'active':''}" onclick="toggleFav(${m.id},event)" title="${fav?'Usuń z ulubionych':'Dodaj do ulubionych'}">${fav?'⭐':'☆'}</button>
       <span class="badge ${badgeClass(m.type)}">${badgeLabel(m.type)}</span>
       <div class="meal-name">${m.name}</div>
       <div class="macros">
@@ -1177,11 +1368,17 @@ function openMeal(id) {
   const sm = scaledMacro(m);
   const changed = Math.abs(scaleFactor-1) > 0.01;
   const dayOpts = DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
-  const slotOpts = SLOT_NAMES.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+  const slotsAvail = p4Mode ? SLOT_NAMES : SLOT_NAMES.slice(0,3);
+  const slotsFiltered = p4Mode ? SLOT_TYPES : SLOT_TYPES.slice(0,3);
+  const slotOpts = slotsAvail.map((s,i)=>`<option value="${i}" ${slotsFiltered[i]===m.type?'selected':''}>${s}</option>`).join('');
   const scaledIngs = scaleIngredients(m.ingredients, scaleFactor);
+  const fav = isFav(m.id);
   document.getElementById('modal-inner').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">×</button>
-    <span class="badge ${badgeClass(m.type)}">${badgeLabel(m.type)}</span>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span class="badge ${badgeClass(m.type)}">${badgeLabel(m.type)}</span>
+      <button class="fav-btn ${fav?'active':''}" onclick="toggleFavInModal(${m.id})" title="${fav?'Usuń z ulubionych':'Dodaj do ulubionych'}" style="position:static;font-size:20px">${fav?'⭐':'☆'}</button>
+    </div>
     <h2>${m.name}</h2>
     <div class="macros" style="margin-bottom:1.25rem">
       <span class="macro"><strong>${sm.kcal}</strong> kcal${changed?` <span style="font-size:11px;color:var(--text3)">(baz. ${m.kcal})</span>`:''}</span>
@@ -1203,6 +1400,14 @@ function openMeal(id) {
   document.getElementById('modal').classList.add('open');
 }
 
+function toggleFavInModal(id) {
+  if(isFav(id)) favorites = favorites.filter(x=>x!==id);
+  else favorites.push(id);
+  saveFavs();
+  openMeal(id); // re-render modal
+  renderMeals();
+}
+
 function addToPlan(mId) {
   const day = parseInt(document.getElementById('ap-day').value);
   const slot = parseInt(document.getElementById('ap-slot').value);
@@ -1213,6 +1418,8 @@ function addToPlan(mId) {
   renderPlanner();
 }
 
+function getActiveSlots() { return p4Mode ? [0,1,2,3] : [0,1,2]; }
+
 function closeModal(e) { if(e.target===document.getElementById('modal')) e.target.classList.remove('open'); }
 function closeModal2(e) { if(e.target===document.getElementById('modal2')) e.target.classList.remove('open'); }
 
@@ -1220,16 +1427,17 @@ let _pendingSlot = null;
 function openAddSlot(day, slot) {
   _pendingSlot = {day, slot};
   const type = SLOT_TYPES[slot];
-  const list = MEALS.filter(m=>m.type===type);
+  const list = MEALS.filter(m => m.type === type);
+  const slotLabel = SLOT_NAMES[slot];
   document.getElementById('modal2-inner').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('modal2').classList.remove('open')">×</button>
-    <h2>Wybierz ${SLOT_NAMES[slot]}<br><small style="font-size:14px;font-weight:400;color:#6b6560">${DAYS[day]}</small></h2>
+    <h2>Wybierz ${slotLabel}<br><small style="font-size:14px;font-weight:400;color:var(--text2)">${DAYS[day]}</small></h2>
     <input class="search-mini" type="text" placeholder="Szukaj..." oninput="filterSlotMeals(this.value,'${type}')">
     <div class="meal-select-grid" id="slot-meal-list">
-      ${list.map(m=>{const sm=scaledMacro(m);return`<div class="meal-option" onclick="confirmSlot(${m.id})">
+      ${list.length ? list.map(m=>{const sm=scaledMacro(m);return`<div class="meal-option" onclick="confirmSlot(${m.id})">
         <span class="mname">${m.name}</span>
         <span class="mkcal">${sm.kcal} kcal</span>
-      </div>`}).join('')}
+      </div>`}).join('') : '<div style="padding:1rem;color:var(--text3);text-align:center">Brak przepisów dla tego posiłku</div>'}
     </div>`;
   document.getElementById('modal2').classList.add('open');
 }
@@ -1270,11 +1478,12 @@ function clearPlan() {
 
 function copyPrevDay(di) {
   if(di === 0) return;
-  const prevHas = [0,1,2].some(si => plan[(di-1)+'_'+si]);
+  const slots = getActiveSlots();
+  const prevHas = slots.some(si => plan[(di-1)+'_'+si]);
   if(!prevHas) { showToast('Poprzedni dzień jest pusty.'); return; }
-  const thisHas = [0,1,2].some(si => plan[di+'_'+si]);
+  const thisHas = slots.some(si => plan[di+'_'+si]);
   if(thisHas && !confirm(`Zastąpić obecne posiłki w ${DAYS[di]} posiłkami z ${DAYS[di-1]}?`)) return;
-  [0,1,2].forEach(si=>{
+  slots.forEach(si=>{
     const prevKey = (di-1)+'_'+si;
     const thisKey = di+'_'+si;
     if(plan[prevKey]) plan[thisKey] = plan[prevKey];
@@ -1287,48 +1496,58 @@ function copyPrevDay(di) {
 
 function renderPlanner() {
   renderWeekStats();
+  const slots = getActiveSlots();
+  const targetKcal = Math.round(BASE_DAY_KCAL * scaleFactor);
   const grid = document.getElementById('planner-grid');
   grid.innerHTML = DAYS.map((d,di)=>{
-    const slots = [0,1,2].map(si=>{
+    const slotsHtml = slots.map(si=>{
       const key = di+'_'+si;
       const m = MEALS.find(x=>x.id===plan[key]);
+      const isP4 = si === 3;
       if(m) {
         const sm = scaledMacro(m);
-        return `<div class="plan-slot filled">
+        return `<div class="plan-slot filled ${isP4?'p4':''}">
           <button class="slot-rm" onclick="removeSlot('${key}',event)" title="Usuń">×</button>
-          <div class="slot-type">${SLOT_NAMES[si]}</div>
+          <div class="slot-type ${isP4?'p4-label':''}">${SLOT_NAMES[si]}</div>
           <div class="slot-name">${m.name}</div>
           <div class="slot-kcal">${sm.kcal} kcal · B${sm.b} T${sm.t} W${sm.w}</div>
         </div>`;
       }
-      return `<div class="plan-slot empty" onclick="openAddSlot(${di},${si})">+ ${SLOT_NAMES[si]}</div>`;
+      return `<div class="plan-slot empty ${isP4?'p4':''}" onclick="openAddSlot(${di},${si})">+ ${SLOT_NAMES[si]}</div>`;
     }).join('');
-    const total = [0,1,2].reduce((s,si)=>{
+
+    const total = slots.reduce((s,si)=>{
       const m=MEALS.find(x=>x.id===plan[di+'_'+si]);
       return s+(m?Math.round(m.kcal*scaleFactor):0);
     },0);
-    const prevHasMeals = di > 0 && [0,1,2].some(si => plan[(di-1)+'_'+si]);
+    const pct = Math.min(100, Math.round(total/targetKcal*100));
+    const over = total > targetKcal * 1.1;
+    const prevHasMeals = di > 0 && slots.some(si => plan[(di-1)+'_'+si]);
     const copyBtn = prevHasMeals
       ? `<button class="day-copy-btn" onclick="copyPrevDay(${di})">↩ kopiuj z ${DAYS_SHORT[di-1]}</button>`
       : '';
     return `<div class="plan-day">
       <div class="plan-day-lbl">${DAYS_SHORT[di]}</div>
-      ${slots}
-      ${total>0?`<div class="day-total">${total} kcal</div>`:''}
+      ${slotsHtml}
+      ${total>0?`<div class="day-total">${total} kcal <span style="font-size:9px;color:var(--text3)">(${pct}%)</span></div>
+      <div class="day-macro-bar"><div class="day-macro-bar-fill${over?' over':''}" style="width:${pct}%"></div></div>`:''}
       ${copyBtn}
     </div>`;
   }).join('');
 }
 
 function renderWeekStats() {
+  const slots = getActiveSlots();
   let kcal=0,b=0,t=0,w=0,count=0;
-  for(let d=0;d<7;d++) for(let s=0;s<3;s++){
+  for(let d=0;d<7;d++) for(const s of slots){
     const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
     if(m){kcal+=Math.round(m.kcal*scaleFactor);b+=Math.round(m.b*scaleFactor);t+=Math.round(m.t*scaleFactor);w+=Math.round(m.w*scaleFactor);count++;}
   }
+  const avgKcal = count > 0 ? Math.round(kcal/7) : 0;
   document.getElementById('week-stats').innerHTML=`
     <div class="wstat"><div class="wstat-val">${count}</div><div class="wstat-lbl">Posiłków</div></div>
     <div class="wstat"><div class="wstat-val">${kcal}</div><div class="wstat-lbl">Łączne kcal</div></div>
+    <div class="wstat"><div class="wstat-val">${avgKcal}</div><div class="wstat-lbl">Śr. kcal/dzień</div></div>
     <div class="wstat"><div class="wstat-val">${b}g</div><div class="wstat-lbl">Białko</div></div>
     <div class="wstat"><div class="wstat-val">${t}g</div><div class="wstat-lbl">Tłuszcz</div></div>
     <div class="wstat"><div class="wstat-val">${w}g</div><div class="wstat-lbl">Węglowodany</div></div>`;
@@ -1337,8 +1556,9 @@ function renderWeekStats() {
 }
 
 function updateHeaderStats() {
+  const slots = getActiveSlots();
   let kcal=0,count=0;
-  for(let d=0;d<7;d++) for(let s=0;s<3;s++){
+  for(let d=0;d<7;d++) for(const s of slots){
     const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
     if(m){kcal+=Math.round(m.kcal*scaleFactor);count++;}
   }
@@ -1468,9 +1688,12 @@ function buildSimplePrintData() {
 
 function buildIngMap() {
   const ingMap = {};
-  Object.values(plan).forEach(mId=>{
+  const slots = getActiveSlots();
+  for(let d=0;d<7;d++) for(const s of slots){
+    const mId = plan[d+'_'+s];
+    if(!mId) continue;
     const m=MEALS.find(x=>x.id===mId);
-    if(!m) return;
+    if(!m) continue;
     const scaled = scaleIngredients(m.ingredients, scaleFactor);
     scaled.forEach(s=>{
       const name = s.name || s.raw.split('–')[0].trim();
@@ -1505,7 +1728,7 @@ function buildIngMap() {
         }
       }
     });
-  });
+  }
 
   Object.values(ingMap).forEach(item=>{
     item.amounts = [];
@@ -1569,6 +1792,110 @@ if(savedScale) {
   }
 }
 
+// ── DARK MODE ──
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('respo-theme', isDark ? 'light' : 'dark');
+}
+(function initTheme(){
+  const t = localStorage.getItem('respo-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+})();
+
+// ── NOWE PRZEPISY — Dieta 5 & 6 (Posiłki 1-3 + P4 jako 'przekąska') ──
+const NEW_MEALS = [
+// ── DIETA 5 ──
+{id:121,name:"Ryż z jabłkiem",type:"śniadanie",kcal:889,b:59,t:32,w:91,ingredients:["Ryż basmati – 60 g","Mleko roślinne niesłodzone – 0.6 szklanki (150 g)","Jabłko – 1 sztuka (150 g)","Odżywka białkowa – 6.5 łyżki (65 g)","Cynamon mielony – 0.5 łyżeczki (2 g)","Orzechy laskowe – 40 g"],steps:["Do rondelka wsypujemy ryż, zalewamy mlekiem i gotujemy, aż ryż będzie miękki i będzie się sklejał. Jeśli ryż wchłonie zbyt duże ilości płynu, dolewamy stopniowo gorącą wodę podczas gotowania.","Do miękkiego ryżu dodajemy odżywkę białkową oraz cynamon i pokrojone owoce, a całość dokładnie mieszamy.","Gotowy ryż przekładamy do miski i posypujemy pokrojonymi orzechami."]},
+{id:122,name:"Zupa gulaszowa z indykiem",type:"obiad",kcal:898,b:50,t:35,w:101,ingredients:["Oliwa z oliwek – 6 łyżeczek (30 g)","Cebula – 1 sztuka (80 g)","Czosnek świeży – 1 ząbek (6 g)","Mięso z piersi indyka – 150 g","Papryka słodka – 0.5 łyżeczki (1.5 g)","Tymianek suszony – 0.5 łyżeczki (1.5 g)","Bulion warzywny – 1 szklanka (250 g)","Passata pomidorowa – 1 szklanka (250 g)","Pieczarki uprawne – 8 sztuk (160 g)","Papryka czerwona – 1 sztuka (170 g)","Ziemniaki – 5 sztuk (350 g)","Natka pietruszki posiekana – 1 łyżeczka (5 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["W garnku na oliwie podsmażamy cebulę, czosnek oraz indyka.","Dodajemy słodką paprykę oraz tymianek suszony, smażymy jeszcze chwilę. Wlewamy bulion i gotujemy.","Dodajemy passatę pomidorową, sól oraz pieprz.","Dodajemy pokrojone pieczarki, paprykę czerwoną oraz ziemniaki. Mieszamy, przykrywamy i gotujemy przez około godzinę, aż ziemniaki zmiękną.","Po nalaniu do miseczek posypujemy natką pietruszki."]},
+{id:123,name:"Angielskie śniadanie",type:"kolacja",kcal:897,b:48,t:36,w:99,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Fasola biała konserwowa – 120 g","Pieczarki uprawne – 8 sztuk (160 g)","Pomidor – 2 sztuki (320 g)","Jajko kurze całe – 3 sztuki (168 g)","Koncentrat pomidorowy 30% – 1 łyżka (25 g)","Oliwa z oliwek – 1.5 łyżki (15 g)","Papryka wędzona – 1 łyżeczka (3 g)","Sos sojowy – 1 łyżka (10 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Białą fasolę konserwową przekładamy do rondelka, dodajemy koncentrat pomidorowy, wędzoną paprykę oraz sól. Wszystkie składniki mieszamy i podgrzewamy.","Na patelni rozgrzewamy oliwę. Pieczarki kroimy na kawałki i wrzucamy na patelnię. Dodajemy sos sojowy. Pomidora przecinamy na pół i wrzucamy na patelnię. Całość smażymy przez 5 minut, co jakiś czas mieszając. Przekładamy na talerz.","Na patelnię wbijamy jajko i smażymy do momentu, aż białko będzie całkowicie ścięte. Doprawiamy solą oraz pieprzem i przekładamy na talerz.","Chleb żytni razowy tostujemy. Podajemy z białą fasolą konserwową."]},
+{id:124,name:"Pudding chia z musem mango",type:"przekąska",kcal:491,b:15,t:23,w:71,ingredients:["Jogurt naturalny 2% – 0.5 opakowania (200 g)","Nasiona chia – 4 łyżeczki (20 g)","Ksylitol – 2 łyżki (30 g)","Mango świeże lub mrożone – 100 g","Orzechy laskowe – 20 g"],steps:["Jogurt naturalny mieszamy z nasionami chia oraz ksylitolem, przekładamy do lodówki na 4 godziny.","Mango blendujemy i wylewamy na wierzch deseru. Posypujemy pokruszonymi orzechami."]},
+{id:125,name:"Ryż na mleku z gorzką czekoladą i malinami",type:"śniadanie",kcal:911,b:63,t:25,w:115,ingredients:["Ryż biały – 75 g","Mleko 1,5% – 0.8 szklanki (200 g)","Czekolada gorzka 70% – 4 kostki (40 g)","Maliny świeże lub mrożone – 200 g","Odżywka białkowa – 6 łyżek (60 g)"],steps:["Zagotowujemy mleko.","Do gotującego się mleka dodajemy ryż, gotujemy na małym ogniu do miękkości, mieszając co jakiś czas.","Następnie dodajemy pokruszoną gorzką czekoladę oraz odżywkę białkową, dokładnie mieszamy.","Ryż przekładamy do miseczki i posypujemy owocami."]},
+{id:126,name:"Pomidorowa zapiekanka makaronowa z indykiem",type:"obiad",kcal:915,b:63,t:34,w:66,ingredients:["Makaron pełnoziarnisty – 70 g","Oliwa z oliwek – 1 łyżeczka (5 g)","Cebula – 0.5 sztuki (40 g)","Czosnek świeży – 1 ząbek (6 g)","Mięso mielone z indyka – 125 g","Passata pomidorowa – 1 szklanka (250 g)","Ser mozzarella kulka – 1 sztuka (120 g)","Oregano suszone – 0.5 łyżeczki (1.5 g)","Papryka słodka – 0.5 łyżeczki (1.5 g)","Bazylia świeża – 0.5 garści (1.5 g)","Pieprz czarny – 1 szczypta","Sól – 1 szczypta"],steps:["Makaron gotujemy chwilę krócej niż al dente. Piekarnik nagrzewamy do 180 stopni, góra-dół.","Na patelni rozgrzewamy oliwę. Dodajemy pokrojoną cebulę oraz czosnek, chwilę podsmażamy.","Dodajemy mięso i krótko podsmażamy. Dodajemy oregano, słodką paprykę, bazylię świeżą, pieprz, sól oraz passatę pomidorową.","Do naczynia żaroodpornego wykładamy makaron i zawartość patelni. Całość mieszamy i wstawiamy do piekarnika na 20 minut. Po tym czasie dodajemy ser i zapiekamy jeszcze kilka minut."]},
+{id:127,name:"Serek wiejski wysokobiałkowy z ogórkiem i suszonymi pomidorami",type:"kolacja",kcal:880,b:61,t:30,w:103,ingredients:["Serek wiejski wysokobiałkowy Piątnica – 340 g","Seler naciowy – 1 łodyga (45 g)","Ogórek świeży – 0.5 sztuki (75 g)","Pomidory suszone w oleju (odsączone) – 3 sztuki (60 g)","Szczypiorek siekany – 1 łyżeczka (5 g)","Chleb żytni razowy – 5 kromek (150 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Masło extra – 2 łyżeczki (10 g)"],steps:["Pomidory odsączamy z oleju i kroimy na małe kawałki.","Dodajemy serek wiejski wysokobiałkowy oraz szczypiorek. Doprawiamy solą oraz pieprzem.","Serek wiejski wysokobiałkowy podajemy z pokrojonym ogórkiem, selerem naciowym oraz chlebem razowym posmarowanym masłem."]},
+{id:128,name:"Nachos z kremem kukurydzianym",type:"przekąska",kcal:489,b:9,t:21,w:65,ingredients:["Nachosy naturalne – 70 g","Kukurydza konserwowa – 3 łyżki (60 g)","Cebula – 0.5 sztuki (40 g)","Czosnek świeży – 1 ząbek (6 g)","Kolendra świeża – 1 garść (4 g)","Płatki drożdżowe – 1 łyżka (5 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Sok z cytryny – 1 łyżka (6 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["W rondlu rozgrzewamy oliwę. Smażymy posiekaną cebulę oraz czosnek.","Podduszamy cebulę oraz czosnek do miękkości. Następnie dodajemy odcedzoną kukurydzę konserwową i podsmażamy.","Usmażone składniki miksujemy na gładką masę i doprawiamy solą, pieprzem, płatkami drożdżowymi oraz sokiem z cytryny. Ozdabiamy kolendrą świeżą. Podajemy z nachosami."]},
+{id:129,name:"Tost z masłem orzechowym oraz bananem",type:"śniadanie",kcal:898,b:27,t:41,w:122,ingredients:["Chleb żytni razowy – 5 kromek (150 g)","Masło orzechowe – 7.5 łyżeczki (75 g)","Banan – 1 sztuka (120 g)"],steps:["Pokrojone kromki chleba przypiekamy na patelni.","Pieczywo smarujemy masłem orzechowym i na wierzch układamy owoce."]},
+{id:130,name:"Udziki z kurczaka z ziemniakami i brokułem",type:"obiad",kcal:919,b:49,t:44,w:89,ingredients:["Ziemniaki – 4 sztuki (280 g)","Oliwa z oliwek – 3 łyżki (30 g)","Udo kurczaka (bez skóry i kości) – 175 g","Czosnek granulowany – 1 łyżeczka (3 g)","Papryka wędzona – 1 łyżeczka (3 g)","Tymianek suszony – 0.5 łyżeczki (1.5 g)","Papryka czerwona – 1 sztuka (170 g)","Brokuł, świeży lub mrożony – 200 g","Cebula – 0.5 sztuki (40 g)","Czosnek świeży – 1 ząbek (6 g)","Pomidory z puszki – 0.5 opakowania (200 g)","Kolendra suszona – 1 łyżeczka (1 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ziemniaki obieramy, myjemy, kroimy na mniejsze kawałki, podgotowujemy w osolonej wodzie przez ok. 10 minut. Przyprawiamy solą, pieprzem oraz skrapiamy oliwą (połowa). Pieczemy w piekarniku nagrzanym do 180 stopni przez ok. 30 minut.","Mięso przyprawiamy solą, pieprzem, czosnkiem granulowanym, wędzoną papryką oraz tymiankiem suszonym. Pieczemy pod przykryciem w piekarniku (180 stopni) około 30 min.","W rondelku rozgrzewamy oliwę i dusimy cebulę, czosnek oraz pomidory z puszki i gotujemy, aż się rozpadną. Dodajemy upieczoną paprykę i miksujemy sos na gładko. Przyprawiamy solą, pieprzem oraz kolendrą.","Brokuła kroimy na mniejsze różyczki i gotujemy 5-7 minut. Mięso podajemy polane sosem, z ziemniakami i gotowanym brokułem."]},
+{id:131,name:"Jogurt skyr z domową granolą i wiśniami",type:"kolacja",kcal:896,b:62,t:34,w:98,ingredients:["Czekolada gorzka 70% – 2 kostki (20 g)","Wiśnie, świeże lub mrożone – 100 g","Jogurt skyr – 19 łyżek (380 g)","Płatki owsiane górskie – 5 łyżek (50 g)","Syrop klonowy – 2.5 łyżeczki (25 g)","Mieszanka orzechów – 40 g"],steps:["Domową granolę robimy z płatków owsianych oraz syropu klonowego i posiekanych orzechów. Wszystkie składniki ze sobą mieszamy, rozkładamy na papierze do pieczenia i pieczemy w temp 180°C przez około 10-15 minut mieszając co kilka minut. Po upieczeniu studzimy i kruszymy.","Wiśnie drylujemy, mrożone rozmrażamy i w razie potrzeby drylujemy.","Do miseczki nakładamy jogurt skyr, domową granolę i wiśnie. Całość mieszamy."]},
+{id:132,name:"Słodka kanapka z wafli ryżowych",type:"przekąska",kcal:489,b:12,t:29,w:51,ingredients:["Wafle ryżowe – 2 sztuki (20 g)","Masło orzechowe – 3 łyżeczki (30 g)","Banan – 0.5 sztuki (60 g)","Czekolada gorzka 70% – 3 kostki (30 g)","Sól – 1 szczypta"],steps:["Wafle ryżowe smarujemy masłem orzechowym.","Banana kroimy, rozkładamy na dolnym waflu, przykrywamy drugim waflem.","Gorzką czekoladę rozpuszczamy w kąpieli wodnej lub mikrofali. Polewamy nią naszą słodką kanapkę. Posypujemy solą."]},
+{id:133,name:"Owsianka banoffee",type:"śniadanie",kcal:914,b:62,t:29,w:107,ingredients:["Płatki owsiane górskie – 5 łyżek (50 g)","Jogurt naturalny 2% – 0.5 opakowania (200 g)","Banan – 1 sztuka (120 g)","Pudding proteinowy smak słony karmel Go active – 2 opakowania (400 g)","Migdały – 30 g"],steps:["Płatki owsiane gotujemy przez kilka minut na wodzie do miękkości, lekko studzimy. Lub pomijamy ten krok i od razu łączymy je z jogurtem.","Banana kroimy w plasterki.","Do miseczki wkładamy kilka plasterków banana, dodajemy płatki owsiane z jogurtem i znowu plasterki banana.","Na wierzch wykładamy pudding i posiekane migdały."]},
+{id:134,name:"Tortilla z kurczakiem i suszonymi pomidorami",type:"obiad",kcal:891,b:51,t:41,w:82,ingredients:["Mięso z piersi kurczaka – 175 g","Tymianek suszony – 0.5 łyżeczki (1.5 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Tortilla pełnoziarnista – 2 sztuki (120 g)","Majonez wegański – 1 łyżka (25 g)","Pomidory suszone w oleju (odsączone) – 2 sztuki (40 g)","Rukola – 40 g","Papryka czerwona – 0.5 sztuki (85 g)","Ogórek świeży – 1 sztuka (150 g)","Seler naciowy – 2 łodygi (90 g)","Sól – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Mięso przyprawiamy solą, pieprzem, tymiankiem suszonym oraz oliwą. Pieczemy w piekarniku z termoobiegiem rozgrzanym do 200 stopni przez 15 minut. Po upieczeniu kroimy na paski.","Majonez mieszamy z drobno posiekanymi suszonymi pomidorami.","Tortille smarujemy majonezem, układamy rukolę, pokrojone warzywa i mięso, zwijamy."]},
+{id:135,name:"Czekoladowa owsianka z borówkami",type:"kolacja",kcal:903,b:61,t:32,w:104,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Nasiona chia – 2 łyżeczki (10 g)","Kakao – 1.5 łyżeczki (7.5 g)","Masło orzechowe – 2 łyżeczki (20 g)","Jogurt skyr – 2 opakowania (300 g)","Mleko 1,5% – 1 szklanka (250 g)","Czekolada gorzka 70% – 2 kostki (20 g)","Erytrol – 3 łyżeczki (15 g)","Borówki amerykańskie, świeże lub mrożone – 100 g"],steps:["Przygotowujemy miseczkę lub zamykany słoik. Do naczynia nakładamy płatki owsiane, nasiona chia, jogurt skyr, kakao, masło orzechowe oraz erytrol. Całość zalewamy mlekiem i dokładnie mieszamy. Następnie owsiankę posypujemy startą lub posiekaną gorzką czekoladą.","Owsiankę odstawiamy na min. 20 minut do namięknięcia. Najlepiej pozostawić owsiankę na całą noc w lodówce.","Przed podaniem posypujemy owsiankę owocami."]},
+{id:136,name:"Owsiane kulki z masłem orzechowym",type:"przekąska",kcal:512,b:15,t:20,w:74,ingredients:["Płatki owsiane górskie – 7 łyżek (70 g)","Masło orzechowe – 3 łyżeczki (30 g)","Daktyle, suszone – 25 g"],steps:["Daktyle zalewamy wrzącą wodą. Pozostawiamy na 20-30 minut, odcedzamy (wodę zostawiamy do blendowania).","Daktyle, płatki i masło orzechowe blendujemy (jeśli potrzeba, dodajemy stopniowo wodę z moczenia daktyli).","Zwilżonymi wodą dłońmi formujemy kulki. Pozostawiamy do zastygnięcia."]},
+{id:137,name:"Owsianka sernikowa",type:"śniadanie",kcal:914,b:60,t:35,w:101,ingredients:["Serek homogenizowany naturalny – 1 opakowanie (150 g)","Banan – 0.5 sztuki (60 g)","Brzoskwinia świeża lub mrożona – 1 sztuka (90 g)","Płatki owsiane górskie – 5 łyżek (50 g)","Mieszanka orzechów – 40 g","Aromat waniliowy – 0.1 łyżeczki (0.25 g)","Jogurt skyr – 2 opakowania (280 g)","Erytrol – 2 łyżeczki (10 g)"],steps:["Brzoskwinię myjemy, a następnie kroimy w kostkę.","Płatki owsiane zalewamy gorącą wodą, nieco ponad wysokość płatków i odstawiamy na 10 minut.","Serek homogenizowany, jogurt skyr oraz aromat waniliowy przekładamy do miski z płatkami owsianymi i mieszamy. W razie potrzeby dosładzamy erytrolem.","Na jogurcie układamy posiekane orzechy oraz pokrojone owoce."]},
+{id:138,name:"Pulpeciki mięsne z kaszą jaglaną w sosie pomidorowym",type:"obiad",kcal:917,b:52,t:34,w:87,ingredients:["Mięso mielone z indyka – 250 g","Makaron pełnoziarnisty – 180 g","Kasza jaglana – 40 g","Jajko kurze całe – 2 sztuki (112 g)","Oliwa z oliwek – 3.5 łyżki (35 g)","Cebula – 1 sztuka (80 g)","Czosnek świeży – 1 ząbek (6 g)","Bulion warzywny – 0.5 szklanki (125 g)","Passata pomidorowa – 0.5 opakowania (350 g)","Papryka słodka – 1 łyżeczka (3 g)","Pieprz czarny – 2 szczypty (0.5 g)","Sos sojowy – 1 łyżka (10 g)","Parmezan starty – 1 łyżka (10 g)","Natka pietruszki posiekana – 2 łyżeczki (10 g)","Sól – 1 szczypta","Oregano suszone – 0.5 łyżeczki (1.5 g)"],steps:["Kaszę jaglaną gotujemy, tak aby była sypka. Odstawiamy do ostudzenia.","Cebulę oraz czosnek drobno siekamy, podsmażamy na rozgrzanej patelni z połową ilości oliwy. Usmażone przekładamy do miski.","Do miski dodajemy mięso, ugotowaną wcześniej kaszę jaglaną, dodajemy przyprawy. Wlewamy sos sojowy, dodajemy jajko i całość dobrze mieszamy.","Lepimy kuleczki i odrobinę je spłaszczamy. Smażymy pulpety na pozostałej ilości tłuszczu, odwracając na każdą stronę.","Wlewamy bulion warzywny i przykrywamy na 5-7 minut. Wlewamy passatę pomidorową i pozostawiamy na około 20 minut na małym ogniu. W międzyczasie gotujemy makaron. Gotowe danie posypujemy startym parmezanem i natką pietruszki."]},
+{id:139,name:"Kanapki z twarożkiem na słodko",type:"kolacja",kcal:919,b:62,t:33,w:102,ingredients:["Chleb żytni razowy – 4 kromki (120 g)","Masło extra – 5 łyżeczek (25 g)","Ser twarogowy półtłusty – 7 plastrów (210 g)","Jogurt skyr – 6 łyżek (120 g)","Truskawki, świeże lub mrożone – 100 g","Miód – 2 łyżeczki (24 g)"],steps:["Ser twarogowy rozdrabniamy widelcem i mieszamy z jogurtem.","Pieczywo smarujemy masłem.","Na twarożku układamy pokrojone owoce, całość polewamy miodem. Twarożek jemy z pieczywem."]},
+{id:140,name:"Owolowo tropikalnie z orzechami i jogurtem",type:"przekąska",kcal:494,b:20,t:25,w:47,ingredients:["Owolowo tropikalnie – 1 opakowanie (200 g)","Orzechy włoskie – 40 g","Jogurt pitny truskawkowy 0% Fruvita – 1 opakowanie (330 g)"],steps:["Jako przekąskę zjadamy mus, jogurt i orzechy."]},
+{id:141,name:"Tortilla z serkiem śmietankowym i szynką drobiową",type:"śniadanie",kcal:927,b:58,t:27,w:114,ingredients:["Tortilla pszenna – 3 sztuki (180 g)","Serek śmietankowy – 2 łyżki (50 g)","Szynka z kurczaka – 17 plastrów (170 g)","Miks sałat – 110 g","Ogórek świeży – 0.5 sztuki (75 g)","Pomidor – 1 sztuka (160 g)"],steps:["Warzywa obieramy ze skóry, pozbywamy się gniazd nasiennych i kroimy.","Tortillę smarujemy serkiem kanapkowym, układamy sałatę, wędlinę i warzywa. Następnie składamy tortillę."]},
+{id:142,name:"Dietetyczne spaghetti carbonara",type:"obiad",kcal:888,b:52,t:43,w:66,ingredients:["Ser cheddar – 3 plastry (45 g)","Jajko kurze całe – 2 sztuki (112 g)","Boczek parzony – 4 plastry (60 g)","Makaron spaghetti pełnoziarnisty – 90 g","Natka pietruszki posiekana – 2 łyżeczki (10 g)","Jogurt naturalny 2% – 4 łyżki (80 g)","Pieprz czarny – 1 szczypta","Czosnek świeży – 2 ząbki (12 g)","Sół – 1 szczypta"],steps:["Gotujemy makaron wg instrukcji na opakowaniu.","Do miseczki wbijamy jajka i mieszamy. Dodajemy pokrojony w kostkę ser oraz posiekaną natkę. Doprawiamy pieprzem oraz solą, mieszamy.","Boczek kroimy w małą kosteczkę. Wrzucamy na patelnię bez tłuszczu i smażymy około 2 minuty. Dodajemy drobno posiekany czosnek. Do boczku dorzucamy makaron i trzymamy jeszcze minutę na małym ogniu.","Zmniejszamy moc palnika, wlewamy jajka, mieszamy energicznie, aby się nie ścięły. Po chwili smażenia zdejmujemy z ognia i zostawiamy na 2 minuty. Po tym czasie dodajemy jogurt naturalny i mieszamy."]},
+{id:143,name:"Owsianka w stylu batona Lion",type:"kolacja",kcal:914,b:64,t:26,w:108,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Mleko 1,5% – 0.5 szklanki (125 g)","Odżywka białkowa – 5.5 łyżki (55 g)","Płatki Lion – 6 łyżek (30 g)","Orzechy arachidowe – 30 g","Banan – 1 sztuka (120 g)","Wanilia ekstrakt – 0.5 łyżeczki (1.5 g)"],steps:["Płatki owsiane gotujemy w mleku, aż będą miękkie. Możemy również zalać płatki zimnym mlekiem i odstawić na kilka minut.","Dodajemy ekstrakt waniliowy.","Do gotowych płatków owsianych dodajemy odżywkę białkową, dokładnie mieszamy i przekładamy do miseczki.","Posypujemy płatkami Lion, orzechami arachidowymi i pokrojonym bananem."]},
+{id:144,name:"Owsianka z bananami i kakao",type:"przekąska",kcal:505,b:11,t:17,w:82,ingredients:["Owsianka Lubella z bananami, kakao – 1 opakowanie (100 g)","Orzechy nerkowca – 35 g","Banan – 2 sztuki (240 g)"],steps:["Owsiankę, owoc i orzechy zjadamy jako przekąskę."]},
+{id:145,name:"Kanapka z serem, szynką i ogórkiem małosolnym",type:"śniadanie",kcal:904,b:61,t:41,w:79,ingredients:["Chleb żytni razowy – 5 kromek (150 g)","Masło extra – 4 łyżeczki (20 g)","Szynka z kurczaka – 12 plastrów (120 g)","Ser gouda – 6 plastrów (90 g)","Ogórek małosolny – 2 sztuki (100 g)"],steps:["Pieczywo smarujemy masłem, nakładamy szynkę i ser.","Ogórka kroimy na kawałki. Kanapki podajemy z ogórkiem."]},
+{id:146,name:"Makaron z waniliowym twarożkiem i truskawkami",type:"obiad",kcal:890,b:54,t:21,w:113,ingredients:["Makaron pełnoziarnisty – 130 g","Ser twarogowy półtłusty – 5 plastrów (150 g)","Mleko 1,5% – 8 łyżek (120 g)","Erytrol – 6 łyżeczek (30 g)","Truskawki, świeże lub mrożone – 200 g","Wanilia ekstrakt – 1 łyżeczka (3 g)","Sół – 1 szczypta","Migdały – 15 g"],steps:["Makaron gotujemy według instrukcji na opakowaniu w osolonej wodzie, odcedzamy.","Ser twarogowy łączymy z mlekiem oraz ekstraktem waniliowym oraz jedną łyżką erytrolu.","Owoce myjemy, kroimy i posypujemy erytrolem, mieszamy.","Makaron mieszamy z serem twarogowym, wykładamy na talerz, posypujemy posiekanymi migdałami. Na górę kładziemy owoce."]},
+{id:147,name:"Kanapki z koperkowym twarożkiem i warzywami",type:"kolacja",kcal:878,b:61,t:32,w:96,ingredients:["Ser twarogowy półtłusty – 6 plastrów (180 g)","Jogurt skyr – 7 łyżek (140 g)","Koper posiekany – 1 łyżeczka (4 g)","Pomidor – 0.5 sztuki (80 g)","Ogórek świeży – 0.5 sztuki (75 g)","Masło extra – 5 łyżeczek (25 g)","Chleb żytni razowy – 5 kromek (150 g)","Sół – 1 szczypta"],steps:["Twaróg rozgniatamy z jogurtem. Dodajemy koperek oraz sól do smaku.","Warzywa myjemy i kroimy w kostkę lub talarki.","Twarożek podajemy z pieczywem i warzywami."]},
+{id:148,name:"Kaszka proteinowa cynamonowa z bakaliami",type:"przekąska",kcal:489,b:24,t:21,w:51,ingredients:["Kaszka proteinowa cynamonowa Go active – 1 opakowanie (200 g)","Jabłko – 1 sztuka (150 g)","Mieszanka bakaliowa BakaDor – 50 g"],steps:["Kaszkę, owoce i orzechy zjadamy na przekąskę."]},
+// ── DIETA 5 (ciąg dalszy) ──
+{id:149,name:"Zapiekanka z pomidorem i serem mozzarellą",type:"śniadanie",kcal:865,b:65,t:35,w:66,ingredients:["Bułka wysokobiałkowa Biedronka/Lidl – 2 sztuki (160 g)","Ser mozzarella kulka light – 1.5 opakowania (180 g)","Pomidor – 2 sztuki (320 g)","Cebula czerwona – 0.5 sztuki (40 g)","Bazylia świeża – 1 garść (3 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Piekarnik nagrzewamy do 180 stopni w funkcji termoobieg. Kromki bułki podpiekamy w piekarniku przez 4-6 minut. Pieczywo kroimy w poprzek.","Ser mozzarellę kroimy na plasterki.","Kroimy w kostkę pomidora oraz cebulę czerwoną, dodajemy bazylię świeżą, sól, pieprz oraz oliwę.","Na pieczywie układamy warzywa i ser. Gotowe zapiekanki możemy podpiec do rozpuszczenia sera."]},
+{id:150,name:"Kurczak z tymiankiem i pieczonymi ziemniakami",type:"obiad",kcal:897,b:48,t:34,w:107,ingredients:["Mięso z piersi kurczaka – 175 g","Tymianek suszony – 1 łyżeczka (3 g)","Czosnek świeży – 1 ząbek (6 g)","Ziemniaki – 6 sztuk (420 g)","Marchew – 1 sztuka (80 g)","Jabłko – 1 sztuka (150 g)","Sok z cytryny – 3 łyżki (18 g)","Oliwa z oliwek – 3 łyżki (30 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ziemniaki obieramy, myjemy, kroimy na mniejsze kawałki i przyprawiamy solą, pieprzem oraz oliwą (połowa). Pieczemy w piekarniku nagrzanym do 180 z termoobiegiem przez 30-40 minut.","Kurczaka przyprawiamy solą, pieprzem, tymiankiem suszonym oraz czosnkiem i skrapiamy pozostałą oliwą. Pieczemy w piekarniku (180 stopni, termoobieg) przez około 18-20 minut.","Obieramy marchew oraz jabłko i ścieramy na tarce na małych oczkach. Tartą marchew z jabłkiem mieszamy ze sobą i przyprawiamy sokiem z cytryny.","Ziemniaki, mięso i surówkę przekładamy na talerz."]},
+{id:151,name:"Twarogowe placuszki z czekoladą i owocami",type:"kolacja",kcal:881,b:56,t:37,w:85,ingredients:["Ser twarogowy chudy – 6 plastrów (180 g)","Mąka pszenna pełnoziarnista – 2 łyżki (30 g)","Erytrol – 2 łyżeczki (10 g)","Proszek do pieczenia – 1 łyżeczka (4 g)","Jajko kurze całe – 2 sztuki (112 g)","Olej rzepakowy – 3 łyżeczki (15 g)","Jabłko – 1 sztuka (150 g)","Banan – 1 sztuka (120 g)","Czekolada gorzka 70% – 2 kostki (20 g)"],steps:["Oddzielamy żółtka od białek.","Ser twarogowy, mąkę pszenną pełnoziarnistą, erytrol oraz proszek do pieczenia, żółtka rozgniatamy widelcem na gładką masę.","Białka ubijamy na sztywną pianę. Pianę dodajemy do masy i delikatnie mieszamy.","Rozgrzewamy patelnię posmarowaną olejem. Ciasto nakładamy łyżką i delikatnie spłaszczamy, smażymy pod przykryciem do ścięcia smażonej strony, przy pomocy płaskiej łopatki odwracamy na drugą stronę i smażymy do ścięcia.","Podajemy z kawałkami czekolady i owoców."]},
+{id:152,name:"Mieszanka orzechów",type:"przekąska",kcal:304,b:10,t:27,w:11,ingredients:["Mieszanka orzechów – 50 g"],steps:["Orzechy zjadamy na przekąskę."]},
+// ── DIETA 6 ──
+{id:153,name:"Owsianka z brzoskwinią",type:"śniadanie",kcal:892,b:58,t:32,w:95,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Mleko 1,5% – 0.8 szklanki (200 g)","Erytrol – 2 łyżeczki (10 g)","Serek twarogowy Go Active brzoskwinia-marakuja – 1.5 opakowania (300 g)","Orzechy włoskie – 40 g","Brzoskwinia świeża lub mrożona – 2 sztuki (180 g)"],steps:["Płatki gotujemy na mleku do miękkości. Jeśli preferujemy gęstszą owsiankę, gotujemy płatki chwilę dłużej, aby nadmiar płynu odparował. Dosładzamy erytrolem wedle uznania. Następnie pozostawiamy płatki na kilka minut do przestygnięcia.","Brzoskwinię kroimy na kawałki.","Przestygnięte płatki mieszamy z serkiem i dodajemy posiekane orzechy włoskie.","Na wierzchu owsianki układamy pokrojone owoce."]},
+{id:154,name:"Kotlety mielone z ziemniakami i mizerią",type:"obiad",kcal:890,b:53,t:30,w:93,ingredients:["Mięso mielone wieprzowe (z łopatki) – 225 g","Bułka tarta – 3 łyżki (30 g)","Woda – 2 łyżki (30 g)","Cebula – 0.5 sztuki (40 g)","Olej rzepakowy – 1 łyżka (10 g)","Ziemniaki – 5 sztuk (350 g)","Ogórek świeży – 0.5 sztuki (75 g)","Ocet – 0.5 łyżki (5 g)","Śmietana 12% – 1 łyżka (18 g)","Koper posiekany – 1 łyżeczka (4 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Ziemniaki obieramy, kroimy na mniejsze kawałki, gotujemy w osolonej wodzie.","Cebulę drobno siekamy, smażymy na połowie tłuszczu. Bułkę tartą namaczamy w wodzie.","Do mięsa dodajemy sól, pieprz, cebulę oraz bułkę tartą. Dokładnie wyrabiamy kilka minut.","Formujemy kotlety, obtaczamy w pozostałej bułce tartej. Smażymy na oleju (połowa) na złoty kolor. Jeśli chcemy, obsmażone kotlety możemy poddusić pod przykryciem przez kilka dodatkowych minut.","Ogórka myjemy, kroimy w plasterki. Dodajemy sól, ocet oraz śmietanę.","Gotowe kotlety przekładamy na talerz razem z ziemniakami i mizerią. Danie posypujemy koperkiem."]},
+{id:155,name:"Kefir z orzechami i owocami",type:"kolacja",kcal:897,b:35,t:45,w:99,ingredients:["Kefir 1.5% – 2.5 szklanki (600 g)","Mieszanka orzechów – 65 g","Banan – 2 sztuki (240 g)"],steps:["Kefir wypijamy, do kefiru zjadamy orzechy oraz banana."]},
+{id:156,name:"Banan + orzechy włoskie",type:"przekąska",kcal:499,b:9,t:25,w:64,ingredients:["Banan – 2 sztuki (240 g)","Orzechy włoskie – 40 g"],steps:["Banana zjadamy z orzechami."]},
+{id:157,name:"Jogurt z borówkami i orzechami",type:"śniadanie",kcal:911,b:61,t:37,w:100,ingredients:["Borówki amerykańskie, świeże lub mrożone – 200 g","Jogurt skyr – 17 łyżek (340 g)","Mieszanka orzechów – 60 g","Płatki owsiane górskie – 6 łyżek (60 g)"],steps:["Borówki wymieszaj z jogurtem skyr, orzechami i płatkami owsianymi.","Smacznego!"]},
+{id:158,name:"Gnocchi z indykiem i groszkiem",type:"obiad",kcal:872,b:53,t:35,w:92,ingredients:["Mięso z piersi indyka – 150 g","Czosnek granulowany – 1 łyżeczka (3 g)","Cebula – 1 sztuka (80 g)","Groszek zielony konserwowy – 0.5 opakowania (120 g)","Marchew – 1 sztuka (80 g)","Gnocchi – 200 g","Ser Grana Padano starty – 1 łyżka (25 g)","Oliwa z oliwek – 2.5 łyżki (25 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Indyka przyprawiamy solą, pieprzem oraz czosnkiem granulowanym i skrapiamy połową oliwy.","Przyprawionego indyka pieczemy w naczyniu żaroodpornym z odrobiną wody w piekarniku rozgrzanym do 180 stopni (góra-dół), aż mięso będzie miękkie (około 40-60 minut).","Oliwę rozgrzewamy w rondelku. Smażymy posiekaną cebulę. Marchew kroimy w kostkę i dodajemy wraz z groszkiem konserwowym, dusimy do miękkości.","Gnocchi gotujemy według instrukcji na opakowaniu. Gdy warzywa są już gotowe, dodajemy gnocchi. Przyprawiamy solą, pieprzem oraz serem grana padano.","Gnocchi przekładamy na talerz i układamy na wierzch pieczonego indyka."]},
+{id:159,name:"Deser z jabłkami i kaszą jaglaną",type:"kolacja",kcal:909,b:59,t:30,w:115,ingredients:["Kasza jaglana – 70 g","Jogurt skyr – 17 łyżek (340 g)","Jabłko – 2 sztuki (300 g)","Mieszanka orzechów – 50 g","Cynamon mielony – 0.5 łyżeczki (2 g)"],steps:["Kaszę jaglaną gotujemy zgodnie z instrukcją na opakowaniu.","Piekarnik rozgrzewamy do 220 stopni, tryb góra-dół.","Jabłka myjemy. Pieczemy w piekarniku przez 20 minut w 220 stopniach. Po upieczeniu obieramy i kroimy na kawałki, mieszamy z cynamonem oraz orzechami.","W dużej szklance umieszczamy: jogurt skyr, kaszę jaglaną oraz jabłko."]},
+{id:160,name:"Proteinowy deser w tubce z waflami",type:"przekąska",kcal:512,b:26,t:12,w:81,ingredients:["High protein dessert waniliowy Ekomilk – 2 opakowania (250 g)","Wafle ryżowe – 4 sztuki (40 g)","Pomarańcza – 1 sztuka (240 g)"],steps:["Deser w tubce zjadamy z waflami i owocami."]},
+{id:161,name:"Tosty francuskie z szynką i warzywami",type:"śniadanie",kcal:882,b:60,t:41,w:74,ingredients:["Jajko kurze całe – 5 sztuk (280 g)","Mleko 1,5% – 1 łyżka (15 g)","Chleb żytni razowy – 4 kromki (120 g)","Oliwa z oliwek – 2 łyżeczki (10 g)","Szynka z indyka – 6 plastrów (90 g)","Pomidor – 1 sztuka (160 g)","Ogórek świeży – 0.5 sztuki (75 g)","Rzodkiewka – 1 sztuka (15 g)","Szczypiorek siekany – 1 łyżeczka (5 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Jajko mieszamy z mlekiem. Dodajemy sół oraz pieprz do smaku.","Chleb namaczamy w jajku, przekładamy na patelnię i polewamy resztą jajka, smażymy na oliwie.","Pomidora, ogórka oraz rzodkiewkę kroimy w plasterki. Następnie drobno siekamy szczypiorek.","Usmażone tosty kładziemy na talerzu. Nakładamy na nie wędlinę i warzywa. Całość posypujemy szczypiorkiem."]},
+{id:162,name:"Tortilla z grillowanym schabem i sosem jogurtowym",type:"obiad",kcal:917,b:54,t:42,w:80,ingredients:["Schab wieprzowy – 175 g","Czosnek granulowany – 0.5 łyżeczki (1.5 g)","Oliwa z oliwek – 2 łyżki (20 g)","Miks sałat – 40 g","Papryka czerwona – 1 sztuka (170 g)","Ogórek świeży – 0.5 sztuki (75 g)","Cebula – 0.5 sztuki (40 g)","Jogurt naturalny 2% – 4 łyżki (80 g)","Sok z cytryny – 1 łyżka (6 g)","Tortilla pełnoziarnista – 2 sztuki (120 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Mięso kroimy na paski około 2 cm i doprawiamy solą, pieprzem, czosnkiem granulowanym oraz oliwą.","Przyprawione mięso smażymy na rozgrzanej patelni przez ok. 6-8 minut, mieszając w trakcie smażenia.","Warzywa kroimy na mniejsze kawałki. Jogurt naturalny mieszamy z sokiem z cytryny.","Na każdą tortillę nakładamy sos, sałatę oraz schab wieprzowy, warzywa i zawijamy."]},
+{id:163,name:"Serek wiejski z miodem i gruszką",type:"kolacja",kcal:896,b:60,t:36,w:82,ingredients:["Serek wiejski wysokobiałkowy Piątnica – 1.5 opakowania (300 g)","Miód – 3 łyżeczki (36 g)","Orzechy włoskie – 35 g","Gruszka – 1 sztuka (130 g)","Bułka wysokobiałkowa Biedronka/Lidl – 1 sztuka (70 g)"],steps:["Gruszkę kroimy w kostkę, orzechy włoskie siekamy.","Gruszkę oraz orzechy włoskie dodajemy do serka wiejskiego wysokobiałkowego, polewamy miodem i mieszamy.","Podajemy z bułką."]},
+{id:164,name:"Pudding proteinowy czekoladowy Valio z bakaliami",type:"przekąska",kcal:479,b:28,t:19,w:49,ingredients:["Pudding proteinowy smak czekoladowy Valio – 1 opakowanie (180 g)","Jabłko – 200 g","Mieszanka bakaliowa BakaDor – 45 g"],steps:["Pudding, bakalie i owoce zjadamy na przekąskę."]},
+{id:165,name:"Jogurt skyr z granolą nerkowcową i jabłkiem",type:"śniadanie",kcal:902,b:66,t:28,w:107,ingredients:["Płatki owsiane górskie – 6 łyżek (60 g)","Orzechy nerkowca – 30 g","Czekolada gorzka 70% – 2 kostki (20 g)","Syrop klonowy – 2 łyżeczki (20 g)","Jabłko – 1 sztuka (150 g)","Jogurt skyr – 2 opakowania (300 g)","Odżywka białkowa – 2 łyżki (20 g)","Cynamon mielony – 1 szczypta (1 g)"],steps:["Mieszamy płatki owsiane, pokruszone orzechy nerkowca, syrop klonowy oraz cynamon.","Składniki rozkładamy na papierze do pieczenia. Pieczemy w temperaturze 180 stopni, tryb góra-dół przez około 10 minut (do zezłocenia), mieszając co chwilę. Po upieczeniu studzimy. Kruszymy, gdy będzie zimna.","Do miski nakładamy jogurt skyr oraz odżywkę białkową, granolę, posiekaną gorzką czekoladę oraz pokrojone owoce."]},
+{id:166,name:"Sycąca zupa meksykańska z mięsem mielonym",type:"obiad",kcal:885,b:46,t:35,w:86,ingredients:["Czosnek świeży – 1 ząbek (6 g)","Cebula – 0.5 sztuki (40 g)","Olej rzepakowy – 2 łyżki (20 g)","Mięso mielone z indyka – 150 g","Pomidory z puszki – 0.5 opakowania (200 g)","Fasola czerwona konserwowa – 120 g","Kukurydza konserwowa – 5 łyżek (100 g)","Papryka czerwona – 0.5 sztuki (85 g)","Tortilla pełnoziarnista – 1 sztuka (60 g)","Kumin – 0.5 łyżeczki (2.5 g)","Papryka wędzona – 0.5 łyżeczki (1.5 g)","Skórka z limonki – 0.5 łyżeczki (1.5 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Czosnek oraz cebulę kroimy w drobną kostkę.","Na patelni rozgrzewamy olej, dodajemy czosnek, cebulę oraz mięso i smażymy, aż mięso nie będzie surowe.","Dodajemy pomidory z puszki i dusimy wszystko razem, aż mięso będzie ugotowane, a pomidory się rozpadną.","Dodajemy odcedzoną czerwoną fasolę konserwową, kukurydzę konserwową oraz paprykę czerwoną. Całość zagotowujemy.","Zupę doprawiamy kuminem, wędzoną papryką, skórką z limonki, solą oraz pieprzem. Zupę podajemy z tortillą."]},
+{id:167,name:"Borówkowa owsianka na zimno",type:"kolacja",kcal:876,b:62,t:28,w:105,ingredients:["Płatki owsiane górskie – 8 łyżek (80 g)","Mleko wysokobiałkowe 0.5% Mlekovita – 0.8 szklanki (200 g)","Nasiona chia – 2 łyżeczki (10 g)","Jogurt skyr – 2 opakowania (300 g)","Borówki amerykańskie, świeże lub mrożone – 100 g","Cynamon mielony – 0.5 łyżeczki (2 g)","Erytrol – 2 łyżeczki (10 g)","Orzechy włoskie – 30 g"],steps:["Do miseczki wsypujemy płatki owsiane oraz nasiona chia. Zalewamy mlekiem i mieszamy.","Dodajemy cynamon, borówki, erytrol, jogurt skyr oraz orzechy włoskie, mieszamy. W razie potrzeby dolewamy odrobinę wody.","Całość wkładamy do lodówki na kilka godzin, najlepiej na całą noc."]},
+{id:168,name:"Banan + orzechy",type:"przekąska",kcal:493,b:9,t:17,w:82,ingredients:["Banan – 320 g","Mieszanka orzechów – 30 g"],steps:["Spożywamy jako przekąskę po posiłku lub w ciągu dnia."]},
+{id:169,name:"Angielskie śniadanie z frankfurterkami i fasolą",type:"śniadanie",kcal:911,b:48,t:36,w:104,ingredients:["Frankfurterki wieprzowe Pikok Pure – 3 sztuki (126 g)","Fasola biała konserwowa – 120 g","Pomidory z puszki – 300 g","Pomidor – 1 sztuka (160 g)","Boczek parzony – 2 plastry (30 g)","Chleb żytni razowy – 4 kromki (120 g)","Ksylitol – 0.5 łyżki (8 g)","Papryka wędzona – 1 łyżeczka (3 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Pomidory z puszki wlewamy do rondelka. Gotujemy na wolnym ogniu, aż pomidory się rozpadną i sos zgęstnieje. Następnie dodajemy odcedzoną białą fasolę konserwową. Doprawiamy solą, pieprzem, wędzoną papryką oraz ksylitolem.","Frankfurterki gotujemy w wodzie, boczek smażymy z obu stron na suchej patelni.","Chleb razowy tostujemy. Pomidora kroimy na pół, solimy miąższ. Grillujemy na suchej patelni przez 5 minut.","Na talerzu układamy: białą fasolę konserwową, pomidora, boczek, frankfurterki oraz chleb razowy."]},
+{id:170,name:"Makaron azjatycki z kurczakiem",type:"obiad",kcal:901,b:52,t:36,w:89,ingredients:["Makaron pełnoziarnisty – 100 g","Mięso z piersi kurczaka – 150 g","Marchew – 1 sztuka (80 g)","Papryka czerwona – 1 sztuka (170 g)","Czosnek świeży – 1 ząbek (6 g)","Cebula – 0.5 sztuki (20 g)","Imbir – 1 plaster (5 g)","Sos sojowy – 3 łyżki (30 g)","Oliwa z oliwek – 3 łyżki (30 g)","Szczypiorek siekany – 1 łyżeczka (5 g)","Sół – 1 szczypta","Papryka słodka – 0.5 łyżeczki (1.5 g)"],steps:["Makaron przygotowujemy według instrukcji na opakowaniu.","Kurczaka kroimy w paski. Siekamy czosnek oraz imbir. Kroimy na drobno marchew, paprykę czerwoną oraz cebulę.","Do pokrojonego mięsa dodajemy oliwę, czosnek oraz imbir. Wszystko mieszamy i odstawiamy na bok.","Rozgrzewamy patelnię, dodajemy kurczaka i podsmażamy około 4 minuty. Do mięsa dodajemy pokrojone wcześniej warzywa. Całość mieszamy i dolewamy 100 ml przegotowanej, ciepłej wody. Dodajemy ugotowany makaron oraz sos sojowy i ponownie mieszamy. W razie potrzeby przyprawiamy solą oraz słodką papryką. Całość podgrzewamy około dwóch minut.","Przed podaniem posypujemy szczypiorkiem."]},
+{id:171,name:"Krem z płatków jaglanych z jabłkiem i orzechami",type:"kolacja",kcal:912,b:62,t:30,w:101,ingredients:["Mleko roślinne niesłodzone – 0.6 szklanki (160 g)","Płatki jaglane – 8 łyżek (80 g)","Jabłko – 0.5 sztuki (75 g)","Orzechy włoskie – 35 g","Odżywka białkowa – 6.5 łyżki (65 g)"],steps:["Do rondelka wlewamy mleko i zagotowujemy.","W momencie gdy mleko zaczyna się gotować, dodajemy płatki jaglane i gotujemy na wolnym ogniu, mieszając co jakiś czas, aż płatki jaglane się ugotują, a całość zgęstnieje.","Gdy masa jest już gotowa, wyłączamy ogień pod rondelkiem i całość miksujemy z odżywką białkową.","Do zmiksowanego kremu dodajemy pokrojone w kostkę lub starte owoce i dokładnie mieszamy. Zmiksowany krem z płatków jaglanych przekładamy do miseczki i posypujemy pokruszonymi orzechami włoskimi."]},
+{id:172,name:"Borówki + orzechy włoskie",type:"przekąska",kcal:499,b:10,t:28,w:59,ingredients:["Borówki amerykańskie, świeże lub mrożone – 350 g","Orzechy włoskie – 45 g"],steps:["Borówki zjadamy z orzechami."]},
+{id:173,name:"Kanapki z twarożkiem i wędliną",type:"śniadanie",kcal:859,b:64,t:25,w:98,ingredients:["Chleb pszenny – 5 kromek (150 g)","Twarożek grani – 1 opakowanie (150 g)","Szynka z kurczaka – 15 plastrów (150 g)","Pomidor – 1 sztuka (160 g)","Ogórek świeży – 1 sztuka (150 g)","Natka pietruszki posiekana – 3 łyżeczki (15 g)","Oliwa z oliwek – 3 łyżeczki (15 g)","Sół – 1 szczypta"],steps:["Ogórka obieramy i kroimy na plasterki.","Pomidora sparzamy wrzątkiem, obieramy ze skórki i kroimy w kostkę.","Pieczywo smarujemy twarożkiem, układamy wędlinę i kawałki ogórka.","Pomidora układamy obok kanapek, delikatnie solimy, skrapiamy oliwą i posypujemy posiekaną natką pietruszki. Kanapki zjadamy z sałatką z pomidora."]},
+{id:174,name:"Zupa pomidorowa z kurczakiem",type:"obiad",kcal:889,b:50,t:33,w:95,ingredients:["Makaron pełnoziarnisty – 100 g","Mięso z piersi kurczaka – 125 g","Papryka słodka – 1 łyżeczka (3 g)","Oliwa z oliwek – 2.5 łyżki (25 g)","Cebula – 0.5 sztuki (40 g)","Czosnek świeży – 1 ząbek (6 g)","Marchew – 0.5 sztuki (40 g)","Pietruszka korzeń – 1 sztuka (50 g)","Bulion warzywny – 1.5 szklanki (375 g)","Pomidory z puszki – 1 opakowanie (400 g)","Bazylia świeża – 0.5 garści (1.5 g)","Sół – 2 szczypty (0.5 g)","Pieprz czarny – 1 szczypta"],steps:["Makaron gotujemy według instrukcji na opakowaniu.","Kurczaka kroimy w kostkę. Posypujemy solą, pieprzem oraz słodką papryką.","W garnku rozgrzewamy oliwę, dodajemy cebulę, czosnek oraz kurczaka. Smażymy, aż się mięso zarumieni.","Marchew oraz pietruszkę kroimy i dodajemy do garnka, smażymy jeszcze przez 4 minuty.","Dodajemy bulion warzywny oraz pomidory z puszki, mieszamy. Gotujemy przez 5 minut. Zupę podajemy z makaronem oraz bazylią świeżą."]},
+{id:175,name:"Koktajl a la Rafaello",type:"kolacja",kcal:892,b:59,t:31,w:105,ingredients:["Banan – 1 sztuka (120 g)","Wiórki kokosowe – 6.5 łyżki (40 g)","Jogurt skyr – 2 opakowania (300 g)","Mleko wysokobiałkowe 0.5% Mlekovita – 1.2 szklanki (300 g)","Płatki owsiane górskie – 5.5 łyżki (55 g)","Erytrol – 3 łyżeczki (15 g)"],steps:["Płatki owsiane zalewamy wrzątkiem, tak, aby woda pokryła wszystkie płatki owsiane. Odstawiamy na 3 minuty.","Blendujemy wszystkie składniki. W razie potrzeby dodajemy wody. Koktajl dosładzamy erytrolem wedle uznania."]},
+{id:176,name:"Gruszka + orzechy",type:"przekąska",kcal:507,b:12,t:27,w:62,ingredients:["Gruszka – 2 sztuki (350 g)","Mieszanka orzechów – 50 g"],steps:["Zjadamy jako przekąskę po posiłku lub w ciągu dnia."]},
+{id:177,name:"Kanapki z pastą jajeczno-wiejską",type:"śniadanie",kcal:906,b:60,t:37,w:89,ingredients:["Serek wiejski wysokobiałkowy Piątnica – 1 opakowanie (200 g)","Jajko kurze całe – 3 sztuki (168 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Chleb żytni razowy – 5 kromek (150 g)","Masło extra – 3 łyżeczki (15 g)","Ogórek świeży – 1 sztuka (150 g)","Roszponka – 50 g"],steps:["Jajka gotujemy na twardo w osolonej wodzie przez ok. 7 minut. Następnie studzimy, obieramy i kroimy w kostkę.","Serek wiejski, jajka i przyprawy mieszamy. Możemy doprawić solą oraz pieprzem według własnego smaku.","Ogórka myjemy i kroimy w talarki lub kostkę.","Pieczywo smarujemy masłem, następnie układamy roszponkę, pastę z serka wiejskiego oraz ogórka."]},
+{id:178,name:"Burrito",type:"obiad",kcal:912,b:43,t:33,w:98,ingredients:["Mięso mielone wieprzowe (z łopatki) – 150 g","Jogurt grecki – 2 łyżki (40 g)","Sok z limonki – 2 łyżki (12 g)","Kumin – 0.5 łyżeczki (2.5 g)","Czosnek granulowany – 0.5 łyżeczki (1.5 g)","Ryż basmati – 30 g","Kolendra świeża – 1 garść (4 g)","Passata pomidorowa – 0.5 szklanki (125 g)","Cebula czerwona – 0.5 sztuki (40 g)","Papryka czerwona – 0.5 sztuki (85 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Tortilla pełnoziarnista – 2 sztuki (120 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Mięso łączymy z przyprawami (sól, pieprz, kumin oraz czosnek granulowany), następnie odstawiamy na chwilę.","Ryż gotujemy według instrukcji na opakowaniu. Do jogurtu greckiego dodajemy sok z limonki oraz posiekaną kolendrę.","Na patelni smażymy mięso przez około 7-9 minut, następnie dodajemy passatę pomidorową i dusimy przez 25 minut.","Na drugiej patelni na oliwie podsmażamy pokrojoną cebulę czerwoną oraz paprykę czerwoną przez około 5-7 minut.","Na tortilli układamy kolejno ryż, mięso oraz jogurt grecki i warzywa. Zawijamy. Opiekamy burrito na patelni."]},
+{id:179,name:"Sałatka z gyrosem",type:"kolacja",kcal:904,b:62,t:31,w:101,ingredients:["Mięso z piersi kurczaka – 200 g","Przyprawa gyros – 1 łyżeczka (5 g)","Oliwa z oliwek – 1.5 łyżki (15 g)","Miks sałat – 50 g","Rukola – 45 g","Ogórek świeży – 0.5 sztuki (75 g)","Cebula czerwona – 0.5 sztuki (40 g)","Pomidorki koktajlowe – 5 sztuk (100 g)","Jogurt grecki – 0.5 opakowania (120 g)","Sok z cytryny – 2 łyżki (12 g)","Czosnek świeży – 1 ząbek (6 g)","Natka pietruszki posiekana – 1 łyżeczka (5 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Miód – 0.5 łyżeczki (6 g)","Chleb żytni razowy – 5 kromek (150 g)"],steps:["Mięso kroimy w kostkę, przyprawiamy oliwą, przyprawą gyros, solą oraz pieprzem, odstawiamy.","Warzywa kroimy w plastry, liście sałaty rwiemy na mniejsze kawałki.","Kurczaka smażymy na rozgrzanej patelni przez 5-6 minut, często mieszając.","W misce mieszamy jogurt grecki, sok z cytryny, czosnek, natkę pietruszki, sół, pieprz oraz miód.","Na talerzu układamy sałatę, rukolę oraz kurczaka i pokrojone warzywa. Polewamy sosem. Gotowe danie podajemy z pieczywem."]},
+{id:180,name:"Napój mleczny proteinowy z owocami",type:"przekąska",kcal:500,b:31,t:17,w:62,ingredients:["Napój mleczny proteinowy o smaku kakaowym Vitanella PRO – 1 opakowanie (242 g)","Borówki amerykańskie, świeże lub mrożone – 300 g","Orzechy włoskie – 25 g"],steps:["Zjadamy na przekąskę."]},
+{id:181,name:"Gorzka czekolada z odżywką i waflami ryżowymi",type:"śniadanie",kcal:921,b:61,t:34,w:103,ingredients:["Czekolada gorzka 70% – 4 kostki (40 g)","Odżywka białkowa – 4 łyżki (40 g)","Wafle ryżowe – 7 sztuk (70 g)","Mleko wysokobiałkowe 0.5% Mlekovita – 1.5 szklanki (375 g)","Orzechy nerkowca – 20 g"],steps:["Odżywkę białkową mieszamy z posiekaną gorzką czekoladą oraz mlekiem. Podajemy z waflami ryżowymi. Czekoladę możemy również rozpuścić w kąpieli wodnej, a potem połączyć z mlekiem oraz odżywką białkową.","Na deser zjadamy orzechy nerkowca."]},
+{id:182,name:"Chilli con carne z ryżem",type:"obiad",kcal:910,b:43,t:35,w:99,ingredients:["Fasola czarna konserwowa – 120 g","Mięso mielone z indyka – 125 g","Pomidory z puszki – 0.5 opakowania (200 g)","Papryka czerwona – 1 sztuka (170 g)","Cebula – 1 sztuka (80 g)","Czosnek świeży – 1 ząbek (6 g)","Kumin – 1 łyżeczka (5 g)","Kakao – 0.5 łyżki (5 g)","Ryż basmati – 60 g","Woda – 1 szklanka (250 g)","Papryka wędzona – 1 łyżeczka (3 g)","Kolendra świeża – 1 garść (4 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 2.5 łyżki (25 g)"],steps:["Ryż gotujemy według instrukcji umieszczonej na opakowaniu.","Cebulę, paprykę czerwoną oraz czosnek siekamy. W rondlu rozgrzewamy oliwę i dusimy na niej warzywa.","Gdy warzywa się zeszklą, dodajemy mięso i dusimy razem cały czas mieszając.","Dodajemy pomidory z puszki oraz wodę i gotujemy na wolnym ogniu, aż sos zgęstnieje, a mięso będzie miękkie.","Dodajemy czarną fasolę konserwową. Gotujemy wszystko razem i doprawiamy solą, pieprzem, kuminem, kakao, wędzoną papryką oraz posiekaną kolendrą. Ugotowane chilli podajemy z ryżem."]},
+{id:183,name:"Zapiekana tortilla",type:"kolacja",kcal:904,b:53,t:41,w:79,ingredients:["Tortilla pszenna – 2 sztuki (120 g)","Jajko kurze całe – 4 sztuki (224 g)","Cebula czerwona – 0.5 sztuki (40 g)","Papryka czerwona – 0.5 sztuki (85 g)","Ser gouda – 3 plastry (45 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Papryka słodka – 0.5 łyżeczki (1.5 g)","Czosnek granulowany – 0.5 łyżeczki (1.5 g)","Oregano suszone – 0.5 łyżeczki (1.5 g)"],steps:["Piekarnik rozgrzewamy do 180 stopni, tryb góra-dół.","Tortille układamy w miseczce do zapiekania, tak, aby boki miseczki były przykryte tortillą, ale nie wystawały. Naczynie do zapiekania możemy wyłożyć papierem do pieczenia.","Paprykę czerwoną oraz cebulę czerwoną kroimy w kostkę. Ser gouda ścieramy na tarce lub kroimy w paski.","Do tortilli wbijamy jajka, dodajemy warzywa i ser gouda. Posypujemy solą, pieprzem, słodką papryką, czosnkiem granulowanym oraz oregano.","Zapiekamy w piekarniku rozgrzanym do 180 stopni przez około 30 minut (lub 20 minut z termoobiegiem)."]},
+{id:184,name:"Orzechy nerkowca",type:"przekąska",kcal:498,b:16,t:39,w:27,ingredients:["Orzechy nerkowca – 90 g"],steps:["Zjadamy jako przekąskę po posiłku lub w ciągu dnia."]},
+{id:185,name:"Owsianka z masłem orzechowym i bananem",type:"śniadanie",kcal:876,b:61,t:27,w:110,ingredients:["Płatki owsiane górskie – 7 łyżek (70 g)","Banan – 1 sztuka (120 g)","Masło orzechowe – 4 łyżeczki (40 g)","Mleko wysokobiałkowe 0.5% Mlekovita – 1 szklanka (250 g)","Jogurt skyr – 13 łyżek (260 g)"],steps:["Płatki owsiane zalewamy ciepłym mlekiem i pozostawiamy do namoczenia na 10 min.","Do namoczonych płatków owsianych dodajemy jogurt skyr i dokładnie mieszamy.","Dodajemy banana oraz masło orzechowe."]},
+{id:186,name:"Pomidorowo serowa zapiekanka makaronowa z kurczakiem",type:"obiad",kcal:884,b:51,t:35,w:79,ingredients:["Makaron pełnoziarnisty – 80 g","Cebula – 0.5 sztuki (40 g)","Czosnek świeży – 1 ząbek (6 g)","Imbir – 1 plaster (5 g)","Papryka czerwona – 0.5 sztuki (85 g)","Marchew – 1 sztuka (80 g)","Mięso z piersi kurczaka – 50 g","Passata pomidorowa – 0.5 szklanki (125 g)","Ser mozzarella kulka – 1 sztuka (120 g)","Oliwa z oliwek – 1 łyżka (10 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Gotujemy makaron 2-3 min krócej niż jest podane na opakowaniu. Nagrzewamy piekarnik do 180 stopni z funkcją termoobieg.","Rozgrzewamy patelnię z połową oliwy. Podsmażamy cebulę, czosnek oraz imbir. Po 5 minutach dodajemy pokrojone paprykę czerwoną oraz marchew. Podsmażamy kolejne 10 minut.","Ściągamy warzywa z patelni na talerz. Wlewamy na patelnię drugą połowę oliwy i podsmażamy pokrojone w kostkę mięso przez 3-4 minuty. Przyprawiamy solą i pieprzem.","Dodajemy na patelnię warzywa, makaron i passatę pomidorową, sół oraz pieprz. Wszystko dokładnie mieszamy i przekładamy do naczynia żaroodpornego.","Naczynie przykrywamy pokrywką lub folią aluminiową i pieczemy przez 20 minut. Po 20 minutach pieczenia zdejmujemy pokrywkę i obsypujemy danie serem. Przykrywamy i pieczemy jeszcze przez 5 minut."]},
+{id:187,name:"Jajka w koszulkach z bułką i sałatką",type:"kolacja",kcal:913,b:52,t:58,w:43,ingredients:["Jajko kurze całe – 5 sztuk (280 g)","Bułka wysokobiałkowa Biedronka/Lidl – 1 sztuka (80 g)","Miks sałat – 20 g","Papryka czerwona – 1 sztuka (170 g)","Pomidorki koktajlowe – 7 sztuk (140 g)","Oliwa z oliwek – 1 łyżeczka (5 g)","Ocet balsamiczny – 0.5 łyżki (5 g)","Majonez wegański – 1 łyżka (30 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta"],steps:["Wodę zagotowujemy w garnku, a następnie zmniejszamy ogień, żeby tylko lekko wrzała. Wbijamy jajko do miseczki i delikatnie wlewamy do wody (każde jajko osobno). Gotujemy 3 minuty (na miękko) lub 4-5 minut (ścięte żółtko).","Bułkę możemy podgrzać w tosterze. Smarujemy majonezem.","Myjemy i kroimy drobno warzywa. Układamy na talerzu sałatę i pokrojone warzywa. Polewamy sałatkę oliwą oraz octem.","Jajka doprawiamy solą oraz pieprzem. Danie podajemy z bułką i sałatką."]},
+{id:188,name:"Deser twarogowy waniliowy Pilos z owocami",type:"przekąska",kcal:488,b:25,t:21,w:53,ingredients:["Deser twarogowy High Protein Pilos waniliowy – 2 opakowania (250 g)","Banan – 1 sztuka (120 g)","Mieszanka orzechów – 20 g"],steps:["Deser twarogowy zjadamy z owocami i orzechami."]},
+{id:189,name:"Koktajl a la Bounty",type:"śniadanie",kcal:899,b:60,t:37,w:85,ingredients:["Banan – 1 sztuka (120 g)","Mleko wysokobiałkowe 0.5% Mlekovita – 1.5 szklanki (375 g)","Czekolada gorzka 70% – 3 kostki (30 g)","Wiórki kokosowe – 5 łyżek (30 g)","Odżywka białkowa – 5 łyżek (50 g)","Miód – 1.5 łyżeczki (18 g)"],steps:["Zblenduj wszystkie składniki. W razie potrzeby dodaj wody."]},
+{id:190,name:"Sałatka z grillowanym kurczakiem",type:"obiad",kcal:866,b:49,t:38,w:83,ingredients:["Mięso z piersi kurczaka – 150 g","Miks sałat – 100 g","Pomidorki koktajlowe – 5 sztuk (100 g)","Ogórek świeży – 1 sztuka (150 g)","Cebula czerwona – 1 sztuka (80 g)","Jogurt naturalny 2% – 7 łyżek (140 g)","Zioła prowansalskie – 1 łyżeczka (3 g)","Sół – 1 szczypta","Pieprz czarny – 1 szczypta","Oliwa z oliwek – 3 łyżki (30 g)","Sok z cytryny – 2 łyżki (12 g)","Miód – 1 łyżeczka (12 g)","Przyprawa gyros – 2 łyżeczki (10 g)","Chleb żytni razowy – 3 kromki (90 g)"],steps:["Składniki marynaty mieszamy w miseczce. Mięso przekładamy do marynaty, odstawiamy na min. 1 godz.","Grillujemy po kilka minut z każdej strony (możemy wykorzystać grill lub patelnię grillową).","Składniki sosu mieszamy.","Sałatę rwiemy. Pomidorki koktajlowe, ogórka oraz cebulę czerwoną kroimy na kawałki.","Warzywa polewamy sosem. Podajemy z kawałkami kurczaka. Zjadamy z pieczywem."]},
+{id:191,name:"Jogurt skyr z waflami ryżowymi i orzechami",type:"kolacja",kcal:894,b:61,t:33,w:108,ingredients:["Jogurt skyr – 18 łyżek (360 g)","Wafle ryżowe – 6 sztuk (60 g)","Mieszanka orzechów – 55 g","Banan – 1 sztuka (120 g)"],steps:["Jogurt skyr zjedz z waflami ryżowymi, orzechami oraz bananem."]},
+{id:192,name:"Winogrona + orzechy",type:"przekąska",kcal:517,b:11,t:27,w:64,ingredients:["Winogrona – 300 g","Mieszanka orzechów – 50 g"],steps:["Jemy na przekąskę."]}
+];
+
+// ── DODAJ NOWE PRZEPISY (sprawdź duplikaty po nazwie) ──
+const existingNames = new Set(MEALS.map(m => m.name.toLowerCase().trim()));
+NEW_MEALS.forEach(m => {
+  if(!existingNames.has(m.name.toLowerCase().trim())) {
+    MEALS.push(m);
+    existingNames.add(m.name.toLowerCase().trim());
+  }
+});
+
+// ── INIT ──
+initP4Toggle();
 renderMeals();
 updateHeaderStats();
 </script>
