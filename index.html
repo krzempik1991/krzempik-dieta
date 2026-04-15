@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KrzempiK Dieta">
 <title>KrzempiK — Moja Dieta</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-touch-fullscreen" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -946,7 +949,7 @@ body {
   <span class="scaler-val" id="sl-val">2300 kcal</span>
   <span class="scaler-factor" id="sl-factor">bazowo</span>
   <button class="scaler-reset" onclick="resetScaler()">Reset</button>
-  <span class="scaler-info" id="sl-info">Baza: ~2300 kcal/dzień</span>
+  <span class="scaler-info" id="sl-info">Gramatury skalowane do wybranego celu</span>
   <div class="scaler-sep"></div>
   <label class="p4-toggle-label">
     <span>4 posiłki</span>
@@ -1227,19 +1230,64 @@ function initP4Toggle() {
 }
 
 const BASE_DAY_KCAL = 2300;
+// Rzeczywiste sumy kcal dnia dla każdego przepisu
+const DAY_TOTALS = {
+  1:2329,2:2329,3:2329,4:2377,5:2377,6:2377,7:2277,8:2277,9:2277,
+  10:2302,11:2302,12:2302,13:2300,14:2300,15:2300,16:2302,17:2302,18:2302,
+  19:2274,20:2274,21:2274,22:2297,23:2297,24:2297,25:2311,26:2311,27:2311,
+  28:2289,29:2289,30:2289,31:2329,32:2329,33:2329,34:2276,35:2276,36:2276,
+  37:2293,38:2293,39:2293,40:2290,41:2290,42:2290,43:2295,44:2295,45:2295,
+  46:2331,47:2331,48:2331,49:2324,50:2324,51:2324,52:2287,53:2287,54:2287,
+  55:2295,56:2295,57:2295,58:2288,59:2288,60:2288,
+  61:2671,62:2671,63:2671,64:2642,65:2642,66:2642,67:2700,68:2700,69:2700,
+  70:2736,71:2736,72:2736,73:2719,74:2719,75:2719,76:2675,77:2675,78:2675,
+  79:2697,80:2697,81:2697,82:2670,83:2670,84:2670,85:2637,86:2637,87:2637,
+  88:2753,89:2753,90:2753,91:2298,92:2298,93:2298,94:2248,95:2248,96:2248,
+  97:2311,98:2311,99:2311,100:2272,101:2272,102:2272,103:2304,104:2304,105:2304,
+  106:2287,107:2287,108:2287,109:2330,110:2330,111:2330,112:2246,113:2246,114:2246,
+  115:2313,116:2313,117:2313,118:2323,119:2323,120:2323,
+  // 4-posiłkowe dni (P1+P2+P3+P4)
+  121:3175,122:3175,123:3175,124:3175,
+  125:3195,126:3195,127:3195,128:3195,
+  129:3202,130:3202,131:3202,132:3202,
+  133:3220,134:3220,135:3220,136:3220,
+  137:3244,138:3244,139:3244,140:3244,
+  141:3234,142:3234,143:3234,144:3234,
+  145:3161,146:3161,147:3161,148:3161,
+  149:2947,150:2947,151:2947,152:2947,
+  153:3178,154:3178,155:3178,156:3178,
+  157:3204,158:3204,159:3204,160:3204,
+  161:3174,162:3174,163:3174,164:3174,
+  165:3156,166:3156,167:3156,168:3156,
+  169:3223,170:3223,171:3223,172:3223,
+  173:3147,174:3147,175:3147,176:3147,
+  177:3222,178:3222,179:3222,180:3222,
+  181:3233,182:3233,183:3233,184:3233,
+  185:3161,186:3161,187:3161,188:3161,
+  189:3176,190:3176,191:3176,192:3176,
+};
+
+let targetKcalGlobal = BASE_DAY_KCAL;
 let scaleFactor = 1.0;
+
+// Oblicz współczynnik skalowania dla konkretnego przepisu
+function getMealFactor(m) {
+  const dayTotal = DAY_TOTALS[m.id] || BASE_DAY_KCAL;
+  return targetKcalGlobal / dayTotal;
+}
 
 function onScalerChange() {
   const v = parseInt(document.getElementById('sl-kcal').value);
+  targetKcalGlobal = v;
   scaleFactor = v / BASE_DAY_KCAL;
   document.getElementById('sl-val').textContent = v + ' kcal';
   const fb = document.getElementById('sl-factor');
-  if(Math.abs(scaleFactor - 1) < 0.02) {
+  if(Math.abs(v - BASE_DAY_KCAL) < 50) {
     fb.textContent = 'bazowo';
     fb.className = 'scaler-factor';
   } else {
-    fb.textContent = '×' + scaleFactor.toFixed(2);
-    fb.className = scaleFactor > 1 ? 'scaler-factor over' : 'scaler-factor';
+    fb.textContent = (v > BASE_DAY_KCAL ? '+' : '') + (v - BASE_DAY_KCAL) + ' kcal';
+    fb.className = v > BASE_DAY_KCAL ? 'scaler-factor over' : 'scaler-factor';
   }
   localStorage.setItem('respo-scale', v);
   renderMeals();
@@ -1254,11 +1302,12 @@ function resetScaler() {
 }
 
 function scaledMacro(m) {
+  const f = getMealFactor(m);
   return {
-    kcal: Math.round(m.kcal * scaleFactor),
-    b: Math.round(m.b * scaleFactor),
-    t: Math.round(m.t * scaleFactor),
-    w: Math.round(m.w * scaleFactor)
+    kcal: Math.round(m.kcal * f),
+    b: Math.round(m.b * f),
+    t: Math.round(m.t * f),
+    w: Math.round(m.w * f)
   };
 }
 
@@ -1358,11 +1407,15 @@ function scaleAmtStr(amtStr, factor) {
   return amtStr;
 }
 
+function isInActivePool(m) {
+  return p4Mode ? m.id >= 121 : (m.id <= 120 && m.type !== 'przekąska');
+}
+
 function renderMeals() {
   const q = document.getElementById('search').value.toLowerCase();
   const ft = document.getElementById('filter-type').value;
   let list = MEALS.filter(m => {
-    if(!p4Mode && m.type === 'przekąska') return false;
+    if(!isInActivePool(m)) return false;
     if(showFavsOnly && !isFav(m.id)) return false;
     if(q && !m.name.toLowerCase().includes(q)) return false;
     if(ft && m.type !== ft) return false;
@@ -1372,7 +1425,7 @@ function renderMeals() {
   if(!list.length) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)">Brak wyników</div>'; return; }
   grid.innerHTML = list.map(m=>{
     const sm = scaledMacro(m);
-    const changed = Math.abs(scaleFactor-1) > 0.01;
+    const changed = Math.abs(getMealFactor(m)-1) > 0.01;
     const fav = isFav(m.id);
     return `<div class="meal-card" onclick="openMeal(${m.id})">
       <button class="fav-btn ${fav?'active':''}" onclick="toggleFav(${m.id},event)" title="${fav?'Usuń z ulubionych':'Dodaj do ulubionych'}">${fav?'⭐':'☆'}</button>
@@ -1391,12 +1444,12 @@ function renderMeals() {
 function openMeal(id) {
   const m = MEALS.find(x=>x.id===id);
   const sm = scaledMacro(m);
-  const changed = Math.abs(scaleFactor-1) > 0.01;
+  const changed = Math.abs(getMealFactor(m)-1) > 0.01;
   const dayOpts = DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
   const slotsAvail = p4Mode ? SLOT_NAMES : SLOT_NAMES.slice(0,3);
   const slotsFiltered = p4Mode ? SLOT_TYPES : SLOT_TYPES.slice(0,3);
   const slotOpts = slotsAvail.map((s,i)=>`<option value="${i}" ${slotsFiltered[i]===m.type?'selected':''}>${s}</option>`).join('');
-  const scaledIngs = scaleIngredients(m.ingredients, scaleFactor);
+  const scaledIngs = scaleIngredients(m.ingredients, getMealFactor(m));
   const fav = isFav(m.id);
   document.getElementById('modal-inner').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">×</button>
@@ -1411,7 +1464,7 @@ function openMeal(id) {
       <span class="macro">Tłuszcz <strong>${sm.t}g</strong></span>
       <span class="macro">Węglowodany <strong>${sm.w}g</strong></span>
     </div>
-    ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień</strong> (współczynnik ×${scaleFactor.toFixed(2)})</div>`:''}
+    ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${targetKcalGlobal} kcal/dzień</strong></div>`:''}
     <div class="section-lbl">Składniki</div>
     <ul class="ing-list">${scaledIngs.map(s=>`<li>${s.name}${s.scaled?' – '+s.scaled:''}</li>`).join('')}</ul>
     <div class="section-lbl">Sposób przygotowania</div>
@@ -1452,7 +1505,7 @@ let _pendingSlot = null;
 function openAddSlot(day, slot) {
   _pendingSlot = {day, slot};
   const type = SLOT_TYPES[slot];
-  const list = MEALS.filter(m => m.type === type);
+  const list = MEALS.filter(m => m.type === type && isInActivePool(m));
   const slotLabel = SLOT_NAMES[slot];
   document.getElementById('modal2-inner').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('modal2').classList.remove('open')">×</button>
@@ -1468,7 +1521,7 @@ function openAddSlot(day, slot) {
 }
 
 function filterSlotMeals(q, type) {
-  const list = MEALS.filter(m=>m.type===type&&(!q||m.name.toLowerCase().includes(q.toLowerCase())));
+  const list = MEALS.filter(m=>m.type===type&&isInActivePool(m)&&(!q||m.name.toLowerCase().includes(q.toLowerCase())));
   document.getElementById('slot-meal-list').innerHTML = list.map(m=>{
     const sm=scaledMacro(m);
     return`<div class="meal-option" onclick="confirmSlot(${m.id})">
@@ -1539,7 +1592,7 @@ function copyPrevDay(di) {
 function renderPlanner() {
   renderWeekStats();
   const slots = getActiveSlots();
-  const targetKcal = Math.round(BASE_DAY_KCAL * scaleFactor);
+  const targetKcal = targetKcalGlobal;
   const grid = document.getElementById('planner-grid');
   grid.innerHTML = DAYS.map((d,di)=>{
     const slotsHtml = slots.map(si=>{
@@ -1560,7 +1613,7 @@ function renderPlanner() {
 
     const total = slots.reduce((s,si)=>{
       const m=MEALS.find(x=>x.id===plan[di+'_'+si]);
-      return s+(m?Math.round(m.kcal*scaleFactor):0);
+      return s+(m?scaledMacro(m).kcal:0);
     },0);
     const pct = Math.min(100, Math.round(total/targetKcal*100));
     const over = total > targetKcal * 1.1;
@@ -1583,7 +1636,7 @@ function renderWeekStats() {
   let kcal=0,b=0,t=0,w=0,count=0;
   for(let d=0;d<7;d++) for(const s of slots){
     const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-    if(m){kcal+=Math.round(m.kcal*scaleFactor);b+=Math.round(m.b*scaleFactor);t+=Math.round(m.t*scaleFactor);w+=Math.round(m.w*scaleFactor);count++;}
+    if(m){const sm=scaledMacro(m);kcal+=sm.kcal;b+=sm.b;t+=sm.t;w+=sm.w;count++;}
   }
   const avgKcal = count > 0 ? Math.round(kcal/7) : 0;
   document.getElementById('week-stats').innerHTML=`
@@ -1602,7 +1655,7 @@ function updateHeaderStats() {
   let kcal=0,count=0;
   for(let d=0;d<7;d++) for(const s of slots){
     const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-    if(m){kcal+=Math.round(m.kcal*scaleFactor);count++;}
+    if(m){kcal+=scaledMacro(m).kcal;count++;}
   }
   document.getElementById('hs-meals').textContent=count;
   document.getElementById('hs-kcal').textContent=kcal;
@@ -1616,9 +1669,9 @@ function generateShopping() {
     return;
   }
   const CATS = getPrintCats(ingMap);
-  const changed = Math.abs(scaleFactor-1) > 0.01;
+  const changed = targetKcalGlobal !== BASE_DAY_KCAL;
   const banner = changed
-    ? `<div style="background:var(--green-light);color:var(--green);padding:10px 14px;border-radius:var(--radius);margin-bottom:1rem;font-size:13px">Ilości przeliczone dla <strong>${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień</strong> (×${scaleFactor.toFixed(2)})</div>`
+    ? `<div style="background:var(--green-light);color:var(--green);padding:10px 14px;border-radius:var(--radius);margin-bottom:1rem;font-size:13px">Ilości przeliczone dla <strong>${targetKcalGlobal} kcal/dzień</strong></div>`
     : '';
   const html = CATS.filter(c=>c.items.length).map(c=>`
     <div class="shop-cat-card">
@@ -1649,7 +1702,7 @@ function printFull() {
   const el = document.getElementById('shopping-content');
   if(!el || !el.innerHTML.trim()) { alert('Najpierw wygeneruj listę zakupów.'); return; }
   const win = window.open('','_blank','width=900,height=700');
-  const scalerNote = Math.abs(scaleFactor-1)>0.01 ? ` · Skalowanie: ×${scaleFactor.toFixed(2)} (${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień)` : '';
+  const scalerNote = targetKcalGlobal !== BASE_DAY_KCAL ? ` · ${targetKcalGlobal} kcal/dzień` : '';
   win.document.write(`<!DOCTYPE html><html lang="pl"><head>
   <meta charset="UTF-8">
   <title>Lista zakupów – KrzempiK</title>
@@ -1680,7 +1733,7 @@ function printSimple() {
   const el = document.getElementById('shopping-content');
   if(!el || !el.innerHTML.trim()) { alert('Najpierw wygeneruj listę zakupów.'); return; }
   const win = window.open('','_blank','width=700,height=700');
-  const scalerNote = Math.abs(scaleFactor-1)>0.01 ? ` · ×${scaleFactor.toFixed(2)} (${Math.round(BASE_DAY_KCAL*scaleFactor)} kcal/dzień)` : '';
+  const scalerNote = targetKcalGlobal !== BASE_DAY_KCAL ? ` · ${targetKcalGlobal} kcal/dzień` : '';
   win.document.write(`<!DOCTYPE html><html lang="pl"><head>
   <meta charset="UTF-8">
   <title>Lista zakupów – prosta</title>
@@ -1736,7 +1789,7 @@ function buildIngMap() {
     if(!mId) continue;
     const m=MEALS.find(x=>x.id===mId);
     if(!m) continue;
-    const scaled = scaleIngredients(m.ingredients, scaleFactor);
+    const scaled = scaleIngredients(m.ingredients, getMealFactor(m));
     scaled.forEach(s=>{
       const name = s.name || s.raw.split('–')[0].trim();
       const amt = s.scaled;
@@ -1824,13 +1877,15 @@ function getPrintCats(ingMap) {
 
 const savedScale = localStorage.getItem('respo-scale');
 if(savedScale) {
-  document.getElementById('sl-kcal').value = savedScale;
-  scaleFactor = parseInt(savedScale) / BASE_DAY_KCAL;
-  document.getElementById('sl-val').textContent = savedScale + ' kcal';
-  if(Math.abs(scaleFactor-1) > 0.02) {
+  const sv = parseInt(savedScale);
+  document.getElementById('sl-kcal').value = sv;
+  targetKcalGlobal = sv;
+  scaleFactor = sv / BASE_DAY_KCAL;
+  document.getElementById('sl-val').textContent = sv + ' kcal';
+  if(Math.abs(sv - BASE_DAY_KCAL) >= 50) {
     const fb = document.getElementById('sl-factor');
-    fb.textContent = '×' + scaleFactor.toFixed(2);
-    fb.className = scaleFactor > 1 ? 'scaler-factor over' : 'scaler-factor';
+    fb.textContent = (sv > BASE_DAY_KCAL ? '+' : '') + (sv - BASE_DAY_KCAL) + ' kcal';
+    fb.className = sv > BASE_DAY_KCAL ? 'scaler-factor over' : 'scaler-factor';
   }
 }
 
@@ -1960,6 +2015,28 @@ NEW_MEALS.forEach(m => {
 initP4Toggle();
 renderMeals();
 updateHeaderStats();
+</script>
+
+<script>
+// ── PWA: Rejestracja Service Workera ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('SW zarejestrowany:', reg.scope);
+        // Sprawdź aktualizacje
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('Dostępna aktualizacja — odśwież aplikację.');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW błąd rejestracji:', err));
+  });
+}
 </script>
 </body>
 </html>
