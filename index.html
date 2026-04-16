@@ -1286,10 +1286,31 @@ function isInActivePool(m) {
   return true;
 }
 
-// Dobiera właściwy dayTotal zależnie od trybu
+// Dobiera właściwy dayTotal zależnie od trybu (używane w atlasie/widoku przepisów)
 function getMealFactor(m) {
   const dt = p4Mode ? (DAY_TOTALS_4[m.id] || BASE_DAY_KCAL) : (DAY_TOTALS_3[m.id] || BASE_DAY_KCAL);
   return targetKcalGlobal / dt;
+}
+
+// Oblicza factor dla konkretnego dnia w planerze (Opcja A: suma kcal dnia = target)
+function getDayFactor(di) {
+  const slots = getActiveSlots();
+  const baseSum = slots.reduce((s, si) => {
+    const m = MEALS.find(x => x.id === plan[di + '_' + si]);
+    return s + (m ? m.kcal : 0);
+  }, 0);
+  if (baseSum === 0) return 1;
+  return targetKcalGlobal / baseSum;
+}
+
+// Skaluje makro przepisu względem factora dnia (używane w planerze)
+function scaledMacroDay(m, dayFactor) {
+  return {
+    kcal: Math.round(m.kcal * dayFactor),
+    b: Math.round(m.b * dayFactor),
+    t: Math.round(m.t * dayFactor),
+    w: Math.round(m.w * dayFactor)
+  };
 }
 
 function onScalerChange() {
@@ -1423,10 +1444,6 @@ function scaleAmtStr(amtStr, factor) {
   return amtStr;
 }
 
-function isInActivePool(m) {
-  return p4Mode ? m.id >= 121 : (m.id <= 120 && m.type !== 'przekąska');
-}
-
 function renderMeals() {
   const q = document.getElementById('search').value.toLowerCase();
   const ft = document.getElementById('filter-type').value;
@@ -1521,7 +1538,7 @@ let _pendingSlot = null;
 function openAddSlot(day, slot) {
   _pendingSlot = {day, slot};
   const type = SLOT_TYPES[slot];
-  const list = MEALS.filter(m => m.type === type && isInActivePool(m));
+  const list = MEALS.filter(m => m.type === type);
   const slotLabel = SLOT_NAMES[slot];
   document.getElementById('modal2-inner').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('modal2').classList.remove('open')">×</button>
@@ -1537,7 +1554,7 @@ function openAddSlot(day, slot) {
 }
 
 function filterSlotMeals(q, type) {
-  const list = MEALS.filter(m=>m.type===type&&isInActivePool(m)&&(!q||m.name.toLowerCase().includes(q.toLowerCase())));
+  const list = MEALS.filter(m=>m.type===type&&(!q||m.name.toLowerCase().includes(q.toLowerCase())));
   document.getElementById('slot-meal-list').innerHTML = list.map(m=>{
     const sm=scaledMacro(m);
     return`<div class="meal-option" onclick="confirmSlot(${m.id})">
@@ -1611,12 +1628,13 @@ function renderPlanner() {
   const targetKcal = targetKcalGlobal;
   const grid = document.getElementById('planner-grid');
   grid.innerHTML = DAYS.map((d,di)=>{
+    const dayFactor = getDayFactor(di);
     const slotsHtml = slots.map(si=>{
       const key = di+'_'+si;
       const m = MEALS.find(x=>x.id===plan[key]);
       const isP4 = si === 3;
       if(m) {
-        const sm = scaledMacro(m);
+        const sm = scaledMacroDay(m, dayFactor);
         return `<div class="plan-slot filled ${isP4?'p4':''}" oncontextmenu="openMealFromSlot(${m.id},event)" ontouchstart="startSlotHold(${m.id},event)" ontouchend="cancelSlotHold()" ontouchmove="cancelSlotHold()">
           <button class="slot-rm" onclick="removeSlot('${key}',event)" title="Usuń">×</button>
           <div class="slot-type ${isP4?'p4-label':''}">${SLOT_NAMES[si]}</div>
@@ -1629,7 +1647,7 @@ function renderPlanner() {
 
     const total = slots.reduce((s,si)=>{
       const m=MEALS.find(x=>x.id===plan[di+'_'+si]);
-      return s+(m?scaledMacro(m).kcal:0);
+      return s+(m?scaledMacroDay(m, dayFactor).kcal:0);
     },0);
     const pct = Math.min(100, Math.round(total/targetKcal*100));
     const over = total > targetKcal * 1.1;
@@ -1650,9 +1668,12 @@ function renderPlanner() {
 function renderWeekStats() {
   const slots = getActiveSlots();
   let kcal=0,b=0,t=0,w=0,count=0;
-  for(let d=0;d<7;d++) for(const s of slots){
-    const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-    if(m){const sm=scaledMacro(m);kcal+=sm.kcal;b+=sm.b;t+=sm.t;w+=sm.w;count++;}
+  for(let d=0;d<7;d++){
+    const df=getDayFactor(d);
+    for(const s of slots){
+      const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
+      if(m){const sm=scaledMacroDay(m,df);kcal+=sm.kcal;b+=sm.b;t+=sm.t;w+=sm.w;count++;}
+    }
   }
   const avgKcal = count > 0 ? Math.round(kcal/7) : 0;
   document.getElementById('week-stats').innerHTML=`
@@ -1669,9 +1690,12 @@ function renderWeekStats() {
 function updateHeaderStats() {
   const slots = getActiveSlots();
   let kcal=0,count=0;
-  for(let d=0;d<7;d++) for(const s of slots){
-    const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-    if(m){kcal+=scaledMacro(m).kcal;count++;}
+  for(let d=0;d<7;d++){
+    const df=getDayFactor(d);
+    for(const s of slots){
+      const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
+      if(m){kcal+=scaledMacroDay(m,df).kcal;count++;}
+    }
   }
   document.getElementById('hs-meals').textContent=count;
   document.getElementById('hs-kcal').textContent=kcal;
@@ -1800,12 +1824,14 @@ function buildSimplePrintData() {
 function buildIngMap() {
   const ingMap = {};
   const slots = getActiveSlots();
-  for(let d=0;d<7;d++) for(const s of slots){
+  for(let d=0;d<7;d++){
+    const df=getDayFactor(d);
+    for(const s of slots){
     const mId = plan[d+'_'+s];
     if(!mId) continue;
     const m=MEALS.find(x=>x.id===mId);
     if(!m) continue;
-    const scaled = scaleIngredients(m.ingredients, getMealFactor(m));
+    const scaled = scaleIngredients(m.ingredients, df);
     scaled.forEach(s=>{
       const name = s.name || s.raw.split('–')[0].trim();
       const amt = s.scaled;
@@ -1839,6 +1865,7 @@ function buildIngMap() {
         }
       }
     });
+  }
   }
 
   Object.values(ingMap).forEach(item=>{
