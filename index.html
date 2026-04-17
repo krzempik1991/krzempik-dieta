@@ -949,7 +949,7 @@ body {
   <span class="scaler-val" id="sl-val">2300 kcal</span>
   <span class="scaler-factor" id="sl-factor">bazowo</span>
   <button class="scaler-reset" onclick="resetScaler()">Reset</button>
-  <span class="scaler-info" id="sl-info">Gramatury skalowane do wybranego celu</span>
+  <span class="scaler-info" id="sl-info">Model Respo: P1 33% · P2 37% · P3 30%</span>
   <div class="scaler-sep"></div>
   <label class="p4-toggle-label">
     <span>4 posiłki</span>
@@ -1216,6 +1216,11 @@ function toggleP4Mode() {
   const sel = document.getElementById('filter-type');
   const p4Opt = sel.querySelector('option[value="przekąska"]');
   if(p4Opt) p4Opt.style.display = p4Mode ? '' : 'none';
+  // Update scaler info label to reflect current split
+  const info = document.getElementById('sl-info');
+  if(info) info.textContent = p4Mode
+    ? 'Model Respo: P1 25% · P2 35% · P3 25% · P4 15%'
+    : 'Model Respo: P1 33% · P2 37% · P3 30%';
   renderMeals();
   renderPlanner();
 }
@@ -1227,90 +1232,57 @@ function initP4Toggle() {
   const sel = document.getElementById('filter-type');
   const p4Opt = sel ? sel.querySelector('option[value="przekąska"]') : null;
   if(p4Opt) p4Opt.style.display = p4Mode ? '' : 'none';
+  // Set correct split label
+  const info = document.getElementById('sl-info');
+  if(info) info.textContent = p4Mode
+    ? 'Model Respo: P1 25% · P2 35% · P3 25% · P4 15%'
+    : 'Model Respo: P1 33% · P2 37% · P3 30%';
 }
 
+// ── MODEL RESPO: Dynamiczny podział kcal na kategorie posiłków ──
 const BASE_DAY_KCAL = 2300;
-// Sumy kcal dnia dla trybu 3-posiłkowego (bez przekąski)
-const DAY_TOTALS_3 = {
-  1:2329,2:2329,3:2329,4:2377,5:2377,6:2377,7:2277,8:2277,9:2277,10:2302,
-  11:2302,12:2302,13:2300,14:2300,15:2300,16:2302,17:2302,18:2302,19:2274,20:2274,
-  21:2274,22:2297,23:2297,24:2297,25:2311,26:2311,27:2311,28:2289,29:2289,30:2289,
-  31:2329,32:2329,33:2329,34:2276,35:2276,36:2276,37:2293,38:2293,39:2293,40:2290,
-  41:2290,42:2290,43:2295,44:2295,45:2295,46:2331,47:2331,48:2331,49:2324,50:2324,
-  51:2324,52:2287,53:2287,54:2287,55:2295,56:2295,57:2295,58:2288,59:2288,60:2288,
-  61:2671,62:2671,63:2671,64:2642,65:2642,66:2642,67:2700,68:2700,69:2700,70:2736,
-  71:2736,72:2736,73:2719,74:2719,75:2719,76:2675,77:2675,78:2675,79:2697,80:2697,
-  81:2697,82:2670,83:2670,84:2670,85:2637,86:2637,87:2637,88:2753,89:2753,90:2753,
-  91:2298,92:2298,93:2298,94:2248,95:2248,96:2248,97:2311,98:2311,99:2311,100:2272,
-  101:2272,102:2272,103:2304,104:2304,105:2304,106:2287,107:2287,108:2287,109:2330,110:2330,
-  111:2330,112:2246,113:2246,114:2246,115:2313,116:2313,117:2313,118:2323,119:2323,120:2323,
-  121:2684,122:2684,123:2684,124:2684,125:2706,126:2706,127:2706,128:2706,129:2713,130:2713,
-  131:2713,132:2713,133:2708,134:2708,135:2708,136:2708,137:2750,138:2750,139:2750,140:2750,
-  141:2729,142:2729,143:2729,144:2729,145:2672,146:2672,147:2672,148:2672,149:2643,150:2643,
-  151:2643,152:2643,153:2679,154:2679,155:2679,156:2679,157:2692,158:2692,159:2692,160:2692,
-  161:2695,162:2695,163:2695,164:2695,165:2663,166:2663,167:2663,168:2663,169:2724,170:2724,
-  171:2724,172:2724,173:2640,174:2640,175:2640,176:2640,177:2722,178:2722,179:2722,180:2722,
-  181:2735,182:2735,183:2735,184:2735,185:2673,186:2673,187:2673,188:2673,189:2659,190:2659,
-  191:2659,192:2659
-};
-// Sumy kcal dnia dla trybu 4-posiłkowego (z przekąską)
-const DAY_TOTALS_4 = {
-  1:2329,2:2329,3:2329,4:2377,5:2377,6:2377,7:2277,8:2277,9:2277,10:2302,
-  11:2302,12:2302,13:2300,14:2300,15:2300,16:2302,17:2302,18:2302,19:2274,20:2274,
-  21:2274,22:2297,23:2297,24:2297,25:2311,26:2311,27:2311,28:2289,29:2289,30:2289,
-  31:2329,32:2329,33:2329,34:2276,35:2276,36:2276,37:2293,38:2293,39:2293,40:2290,
-  41:2290,42:2290,43:2295,44:2295,45:2295,46:2331,47:2331,48:2331,49:2324,50:2324,
-  51:2324,52:2287,53:2287,54:2287,55:2295,56:2295,57:2295,58:2288,59:2288,60:2288,
-  61:2671,62:2671,63:2671,64:2642,65:2642,66:2642,67:2700,68:2700,69:2700,70:2736,
-  71:2736,72:2736,73:2719,74:2719,75:2719,76:2675,77:2675,78:2675,79:2697,80:2697,
-  81:2697,82:2670,83:2670,84:2670,85:2637,86:2637,87:2637,88:2753,89:2753,90:2753,
-  91:2298,92:2298,93:2298,94:2248,95:2248,96:2248,97:2311,98:2311,99:2311,100:2272,
-  101:2272,102:2272,103:2304,104:2304,105:2304,106:2287,107:2287,108:2287,109:2330,110:2330,
-  111:2330,112:2246,113:2246,114:2246,115:2313,116:2313,117:2313,118:2323,119:2323,120:2323,
-  121:3175,122:3175,123:3175,124:3175,125:3195,126:3195,127:3195,128:3195,129:3202,130:3202,
-  131:3202,132:3202,133:3220,134:3220,135:3220,136:3220,137:3244,138:3244,139:3244,140:3244,
-  141:3234,142:3234,143:3234,144:3234,145:3161,146:3161,147:3161,148:3161,149:2947,150:2947,
-  151:2947,152:2947,153:3178,154:3178,155:3178,156:3178,157:3204,158:3204,159:3204,160:3204,
-  161:3174,162:3174,163:3174,164:3174,165:3156,166:3156,167:3156,168:3156,169:3223,170:3223,
-  171:3223,172:3223,173:3147,174:3147,175:3147,176:3147,177:3222,178:3222,179:3222,180:3222,
-  181:3233,182:3233,183:3233,184:3233,185:3161,186:3161,187:3161,188:3161,189:3176,190:3176,
-  191:3176,192:3176
-};
+
+// Proporcje kcal dla trybu 3-posiłkowego (P1+P2+P3 = 100%)
+const SPLIT_3 = { śniadanie: 0.33, obiad: 0.37, kolacja: 0.30 };
+// Proporcje kcal dla trybu 4-posiłkowego (P1+P2+P3+P4 = 100%)
+const SPLIT_4 = { śniadanie: 0.25, obiad: 0.35, kolacja: 0.25, przekąska: 0.15 };
 
 let targetKcalGlobal = BASE_DAY_KCAL;
 let scaleFactor = 1.0;
 
+// Zaokrąglanie gramatur do najbliższego wielokrotnika (domyślnie 5g; <20g → 1g)
+const roundGrams = (g) => g < 20 ? Math.max(1, Math.round(g)) : Math.max(5, Math.round(g / 5) * 5);
+
 // Przekąski widoczne tylko w trybie P4; wszystkie inne przepisy widoczne zawsze
-function isInActivePool(m) {
-  if (m.type === 'przekąska') return p4Mode;
-  return true;
+const isInActivePool = (m) => m.type === 'przekąska' ? p4Mode : true;
+
+// Zwraca docelową liczbę kcal dla danego slotu (kategorii posiłku) przy aktualnym targetKcalGlobal
+function getSlotKcalTarget(type) {
+  const split = p4Mode ? SPLIT_4 : SPLIT_3;
+  const ratio = split[type] ?? (p4Mode ? SPLIT_4.śniadanie : SPLIT_3.śniadanie);
+  return Math.round(targetKcalGlobal * ratio);
 }
 
-// Dobiera właściwy dayTotal zależnie od trybu (używane w atlasie/widoku przepisów)
+// Indywidualny factor dla przepisu = cel kcal kategorii / bazowe kcal przepisu
 function getMealFactor(m) {
-  const dt = p4Mode ? (DAY_TOTALS_4[m.id] || BASE_DAY_KCAL) : (DAY_TOTALS_3[m.id] || BASE_DAY_KCAL);
-  return targetKcalGlobal / dt;
+  const target = getSlotKcalTarget(m.type);
+  return target / m.kcal;
 }
 
-// Oblicza factor dla konkretnego dnia w planerze (Opcja A: suma kcal dnia = target)
-function getDayFactor(di) {
-  const slots = getActiveSlots();
-  const baseSum = slots.reduce((s, si) => {
-    const m = MEALS.find(x => x.id === plan[di + '_' + si]);
-    return s + (m ? m.kcal : 0);
-  }, 0);
-  if (baseSum === 0) return 1;
-  return targetKcalGlobal / baseSum;
-}
-
-// Skaluje makro przepisu względem factora dnia (używane w planerze)
-function scaledMacroDay(m, dayFactor) {
+// Skaluje makro przepisu względem jego indywidualnego factora
+function scaledMacro(m) {
+  const f = getMealFactor(m);
   return {
-    kcal: Math.round(m.kcal * dayFactor),
-    b: Math.round(m.b * dayFactor),
-    t: Math.round(m.t * dayFactor),
-    w: Math.round(m.w * dayFactor)
+    kcal: Math.round(m.kcal * f),
+    b: Math.round(m.b * f),
+    t: Math.round(m.t * f),
+    w: Math.round(m.w * f)
   };
+}
+
+// W planerze każdy slot używa własnego (per-typ) factora — nie globalnego dnia
+function scaledMacroSlot(m) {
+  return scaledMacro(m);
 }
 
 function onScalerChange() {
@@ -1336,16 +1308,6 @@ function resetScaler() {
   document.getElementById('sl-kcal').value = BASE_DAY_KCAL;
   onScalerChange();
   showToast('Przywrócono bazową kaloryczność.');
-}
-
-function scaledMacro(m) {
-  const f = getMealFactor(m);
-  return {
-    kcal: Math.round(m.kcal * f),
-    b: Math.round(m.b * f),
-    t: Math.round(m.t * f),
-    w: Math.round(m.w * f)
-  };
 }
 
 const DISCRETE_UNITS = /sztuk[ai]?|szt\.?|opakow|opak\.?|plaster|plast\.?|kostk[ai]|kromk[ai]|kromek|garść|garście|garści|ząbk[ói]|bagiet/i;
@@ -1437,7 +1399,7 @@ function scaleAmtStr(amtStr, factor) {
   const gMatch = amtStr.match(/([\d.,]+)\s*g\b/);
   if(gMatch) {
     const origG = parseFloat(gMatch[1].replace(',','.'));
-    const scaledG = Math.max(1, Math.round(origG * factor));
+    const scaledG = roundGrams(origG * factor);
     return amtStr.replace(gMatch[0], `${scaledG} g`);
   }
 
@@ -1497,7 +1459,7 @@ function openMeal(id) {
       <span class="macro">Tłuszcz <strong>${sm.t}g</strong></span>
       <span class="macro">Węglowodany <strong>${sm.w}g</strong></span>
     </div>
-    ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${targetKcalGlobal} kcal/dzień</strong></div>`:''}
+    ${changed?`<div style="font-size:12px;background:var(--green-light);color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-bottom:1rem">Składniki przeliczone dla <strong>${getSlotKcalTarget(m.type)} kcal</strong> (${m.type} · ${Math.round(getMealFactor(m)*100)}% bazy)</div>`:''}
     <div class="section-lbl">Składniki</div>
     <ul class="ing-list">${scaledIngs.map(s=>`<li>${s.name}${s.scaled?' – '+s.scaled:''}</li>`).join('')}</ul>
     <div class="section-lbl">Sposób przygotowania</div>
@@ -1627,14 +1589,13 @@ function renderPlanner() {
   const slots = getActiveSlots();
   const targetKcal = targetKcalGlobal;
   const grid = document.getElementById('planner-grid');
-  grid.innerHTML = DAYS.map((d,di)=>{
-    const dayFactor = getDayFactor(di);
-    const slotsHtml = slots.map(si=>{
-      const key = di+'_'+si;
-      const m = MEALS.find(x=>x.id===plan[key]);
+  grid.innerHTML = DAYS.map((d,di) => {
+    const slotsHtml = slots.map(si => {
+      const key = `${di}_${si}`;
+      const m = MEALS.find(x => x.id === plan[key]);
       const isP4 = si === 3;
       if(m) {
-        const sm = scaledMacroDay(m, dayFactor);
+        const sm = scaledMacroSlot(m);
         return `<div class="plan-slot filled ${isP4?'p4':''}" oncontextmenu="openMealFromSlot(${m.id},event)" ontouchstart="startSlotHold(${m.id},event)" ontouchend="cancelSlotHold()" ontouchmove="cancelSlotHold()">
           <button class="slot-rm" onclick="removeSlot('${key}',event)" title="Usuń">×</button>
           <div class="slot-type ${isP4?'p4-label':''}">${SLOT_NAMES[si]}</div>
@@ -1645,13 +1606,13 @@ function renderPlanner() {
       return `<div class="plan-slot empty ${isP4?'p4':''}" onclick="openAddSlot(${di},${si})">+ ${SLOT_NAMES[si]}</div>`;
     }).join('');
 
-    const total = slots.reduce((s,si)=>{
-      const m=MEALS.find(x=>x.id===plan[di+'_'+si]);
-      return s+(m?scaledMacroDay(m, dayFactor).kcal:0);
-    },0);
-    const pct = Math.min(100, Math.round(total/targetKcal*100));
+    const total = slots.reduce((s,si) => {
+      const m = MEALS.find(x => x.id === plan[`${di}_${si}`]);
+      return s + (m ? scaledMacroSlot(m).kcal : 0);
+    }, 0);
+    const pct = Math.min(100, Math.round(total / targetKcal * 100));
     const over = total > targetKcal * 1.1;
-    const prevHasMeals = di > 0 && slots.some(si => plan[(di-1)+'_'+si]);
+    const prevHasMeals = di > 0 && slots.some(si => plan[`${di-1}_${si}`]);
     const copyBtn = prevHasMeals
       ? `<button class="day-copy-btn" onclick="copyPrevDay(${di})">↩ kopiuj z ${DAYS_SHORT[di-1]}</button>`
       : '';
@@ -1669,10 +1630,9 @@ function renderWeekStats() {
   const slots = getActiveSlots();
   let kcal=0,b=0,t=0,w=0,count=0;
   for(let d=0;d<7;d++){
-    const df=getDayFactor(d);
     for(const s of slots){
-      const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-      if(m){const sm=scaledMacroDay(m,df);kcal+=sm.kcal;b+=sm.b;t+=sm.t;w+=sm.w;count++;}
+      const m = MEALS.find(x => x.id === plan[`${d}_${s}`]);
+      if(m){ const sm=scaledMacroSlot(m); kcal+=sm.kcal; b+=sm.b; t+=sm.t; w+=sm.w; count++; }
     }
   }
   const avgKcal = count > 0 ? Math.round(kcal/7) : 0;
@@ -1691,14 +1651,13 @@ function updateHeaderStats() {
   const slots = getActiveSlots();
   let kcal=0,count=0;
   for(let d=0;d<7;d++){
-    const df=getDayFactor(d);
     for(const s of slots){
-      const m=MEALS.find(x=>x.id===plan[d+'_'+s]);
-      if(m){kcal+=scaledMacroDay(m,df).kcal;count++;}
+      const m = MEALS.find(x => x.id === plan[`${d}_${s}`]);
+      if(m){ kcal += scaledMacroSlot(m).kcal; count++; }
     }
   }
-  document.getElementById('hs-meals').textContent=count;
-  document.getElementById('hs-kcal').textContent=kcal;
+  document.getElementById('hs-meals').textContent = count;
+  document.getElementById('hs-kcal').textContent = kcal;
 }
 
 function generateShopping() {
@@ -1710,8 +1669,9 @@ function generateShopping() {
   }
   const CATS = getPrintCats(ingMap);
   const changed = targetKcalGlobal !== BASE_DAY_KCAL;
+  const split = p4Mode ? 'P1 25%·P2 35%·P3 25%·P4 15%' : 'P1 33%·P2 37%·P3 30%';
   const banner = changed
-    ? `<div style="background:var(--green-light);color:var(--green);padding:10px 14px;border-radius:var(--radius);margin-bottom:1rem;font-size:13px">Ilości przeliczone dla <strong>${targetKcalGlobal} kcal/dzień</strong></div>`
+    ? `<div style="background:var(--green-light);color:var(--green);padding:10px 14px;border-radius:var(--radius);margin-bottom:1rem;font-size:13px">Ilości przeliczone wg Modelu Respo dla <strong>${targetKcalGlobal} kcal/dzień</strong> · ${split}</div>`
     : '';
   const html = CATS.filter(c=>c.items.length).map(c=>`
     <div class="shop-cat-card">
@@ -1825,55 +1785,55 @@ function buildIngMap() {
   const ingMap = {};
   const slots = getActiveSlots();
   for(let d=0;d<7;d++){
-    const df=getDayFactor(d);
     for(const s of slots){
-    const mId = plan[d+'_'+s];
-    if(!mId) continue;
-    const m=MEALS.find(x=>x.id===mId);
-    if(!m) continue;
-    const scaled = scaleIngredients(m.ingredients, df);
-    scaled.forEach(s=>{
-      const name = s.name || s.raw.split('–')[0].trim();
-      const amt = s.scaled;
-      const key = name.toLowerCase();
-      if(!ingMap[key]) ingMap[key]={name, grams:0, units:{}};
-      if(!amt) return;
+      const mId = plan[`${d}_${s}`];
+      if(!mId) continue;
+      const m = MEALS.find(x => x.id === mId);
+      if(!m) continue;
+      const factor = getMealFactor(m);
+      const scaled = scaleIngredients(m.ingredients, factor);
+      scaled.forEach(s => {
+        const name = s.name || s.raw.split('–')[0].trim();
+        const amt = s.scaled;
+        const key = name.toLowerCase();
+        if(!ingMap[key]) ingMap[key] = {name, grams:0, units:{}};
+        if(!amt) return;
 
-      const gMatch = amt.match(/([\d.,]+)\s*g\b/);
-      if(gMatch) ingMap[key].grams += parseFloat(gMatch[1].replace(',','.'));
+        const gMatch = amt.match(/([\d.,]+)\s*g\b/);
+        if(gMatch) ingMap[key].grams += parseFloat(gMatch[1].replace(',','.'));
 
-      const unitPatterns = [
-        /(\d[\d.,]*)\s*(sztuk[ai]?|szt\.?)/i,
-        /(\d[\d.,]*)\s*(opakow\w*|opak\.?)/i,
-        /(\d[\d.,]*)\s*(łyżk[ai]|łyżek)/i,
-        /(\d[\d.,]*)\s*(łyżeczk[ai]|łyżeczek)/i,
-        /(\d[\d.,]*)\s*(szklank[ai]|szklanek)/i,
-        /(\d[\d.,]*)\s*(plaster\w*|plast\.?)/i,
-        /(\d[\d.,]*)\s*(garść|garście|garści)/i,
-        /(\d[\d.,]*)\s*(kostk[ai])/i,
-        /(\d[\d.,]*)\s*(kromk[ai]|kromek)/i,
-        /(\d[\d.,]*)\s*(ząbk[ói]\w*)/i,
-        /(\d[\d.,]*)\s*(szczyp\w+)/i,
-      ];
-      for(const pat of unitPatterns){
-        const m2=amt.match(pat);
-        if(m2){
-          const count=parseFloat(m2[1].replace(',','.'));
-          const unit=normalizeUnit(m2[2].toLowerCase());
-          ingMap[key].units[unit] = (ingMap[key].units[unit]||0) + count;
-          break;
+        const unitPatterns = [
+          /(\d[\d.,]*)\s*(sztuk[ai]?|szt\.?)/i,
+          /(\d[\d.,]*)\s*(opakow\w*|opak\.?)/i,
+          /(\d[\d.,]*)\s*(łyżk[ai]|łyżek)/i,
+          /(\d[\d.,]*)\s*(łyżeczk[ai]|łyżeczek)/i,
+          /(\d[\d.,]*)\s*(szklank[ai]|szklanek)/i,
+          /(\d[\d.,]*)\s*(plaster\w*|plast\.?)/i,
+          /(\d[\d.,]*)\s*(garść|garście|garści)/i,
+          /(\d[\d.,]*)\s*(kostk[ai])/i,
+          /(\d[\d.,]*)\s*(kromk[ai]|kromek)/i,
+          /(\d[\d.,]*)\s*(ząbk[ói]\w*)/i,
+          /(\d[\d.,]*)\s*(szczyp\w+)/i,
+        ];
+        for(const pat of unitPatterns){
+          const m2 = amt.match(pat);
+          if(m2){
+            const count = parseFloat(m2[1].replace(',','.'));
+            const unit = normalizeUnit(m2[2].toLowerCase());
+            ingMap[key].units[unit] = (ingMap[key].units[unit]||0) + count;
+            break;
+          }
         }
-      }
-    });
-  }
+      });
+    }
   }
 
-  Object.values(ingMap).forEach(item=>{
+  Object.values(ingMap).forEach(item => {
     item.amounts = [];
-    if(item.grams > 0) item.amounts.push(Math.round(item.grams)+' g');
+    if(item.grams > 0) item.amounts.push(Math.round(item.grams) + ' g');
     for(const [unit, count] of Object.entries(item.units)){
       const val = Number.isInteger(count) ? count : parseFloat(count.toFixed(1));
-      item.amounts.push(val+' '+unit);
+      item.amounts.push(val + ' ' + unit);
     }
   });
   return ingMap;
