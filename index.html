@@ -715,19 +715,26 @@ body {
 /* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
 
-  /* ── HEADER ── */
+  /* ── HEADER — safe area dla iPhone notch/Dynamic Island ── */
   .header {
-    padding: 0 1rem;
+    /* padding-top wypycha zawartość headera pod wyspę/notch */
+    padding-top: env(safe-area-inset-top, 0);
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 0;
     gap: 0;
     justify-content: space-between;
-    height: 52px;
+    /* min-height = stała wysokość headera + wysokość wyspy */
+    min-height: calc(52px + env(safe-area-inset-top, 0));
     flex-wrap: nowrap;
+    /* align-items: flex-end — logo i przyciski trzymają się dolnej krawędzi */
+    align-items: flex-end;
   }
-  .logo { font-size: 20px; padding: 0; flex-shrink: 0; }
+  .logo { font-size: 20px; padding: 10px 0; flex-shrink: 0; }
   .logo span { display: none; }
-  .header-stats { gap: 0; margin-left: auto; }
+  .header-stats { gap: 0; margin-left: auto; padding-bottom: 8px; }
   .hstat { display: none; }
-  .theme-toggle { flex-shrink: 0; }
+  .theme-toggle { flex-shrink: 0; margin-bottom: 8px; }
 
   /* ── BOTTOM NAV ── */
   .nav {
